@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITS Hunt - Pagina di Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            font-size: 2rem;
+            background: linear-gradient(135deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 2rem;
+        }
+
+        /* Sezione QR */
+        .section {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .section h2 {
+            color: #00ff88;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Grid QR */
+        .qr-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1.5rem;
+        }
+        .qr-card {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(0,255,136,0.15);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        .qr-card:hover {
+            border-color: rgba(0,255,136,0.4);
+            transform: translateY(-3px);
+        }
+        .qr-card .letter {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #00ff88;
+            margin-bottom: 0.5rem;
+        }
+        .qr-card .pos {
+            color: #666;
+            font-size: 0.8rem;
+            margin-bottom: 0.5rem;
+        }
+        .qr-card .qrcode {
+            margin: 0.5rem auto;
+            padding: 8px;
+            background: #fff;
+            border-radius: 8px;
+            display: inline-block;
+        }
+        .qr-card .qrcode img, .qr-card .qrcode canvas {
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* Pulsanti simulazione */
+        .sim-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+        .sim-btn {
+            background: linear-gradient(135deg, rgba(0,255,136,0.15), rgba(0,204,255,0.15));
+            border: 1px solid rgba(0,255,136,0.3);
+            color: #00ff88;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .sim-btn:hover {
+            background: linear-gradient(135deg, rgba(0,255,136,0.3), rgba(0,204,255,0.3));
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,255,136,0.15);
+        }
+        .sim-btn.all {
+            background: linear-gradient(135deg, #00ff88, #00ccff);
+            color: #000;
+            border: none;
+            font-weight: bold;
+        }
+        .sim-btn.reset {
+            background: rgba(255,68,68,0.15);
+            border-color: rgba(255,68,68,0.4);
+            color: #ff4444;
+        }
+        .sim-btn.reset:hover {
+            background: rgba(255,68,68,0.3);
+        }
+
+        /* Stato progresso */
+        .progress-display {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+        .progress-slot {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border: 2px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.03);
+            color: rgba(255,255,255,0.2);
+        }
+        .progress-slot.found {
+            border-color: rgba(0,255,136,0.5);
+            background: rgba(0,255,136,0.1);
+            color: #00ff88;
+            box-shadow: 0 0 15px rgba(0,255,136,0.2);
+        }
+
+        /* Info box */
+        .info-box {
+            background: rgba(0,255,136,0.05);
+            border-left: 3px solid #00ff88;
+            padding: 1rem;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            color: #aaa;
+            line-height: 1.6;
+        }
+        .info-box code {
+            background: rgba(0,0,0,0.4);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #00ff88;
+            font-family: monospace;
+        }
+
+        /* Responsive */
+        @media (max-width: 500px) {
+            h1 { font-size: 1.5rem; }
+            .qr-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+<base target="_blank">
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 ITS Hunt - Test & Debug</h1>
+        <p class="subtitle">Genera QR code e simula gli scan per testare il sistema</p>
+
+        <div class="info-box">
+            <strong>💡 Come testare in locale:</strong><br>
+            1. Apri <code>index.html</code> in una tab del browser<br>
+            2. Torna su questa pagina e clicca i pulsanti "Simula Scan"<br>
+            3. Torna su <code>index.html</code> per vedere le lettere sbloccate!<br>
+            <em>Nota: con <code>file://</code> i QR potrebbero non funzionare correttamente. Usa i pulsanti qui sotto.</em>
+        </div>
+
+        <!-- Sezione QR Code -->
+        <div class="section">
+            <h2>📱 QR Code Generati</h2>
+            <div class="qr-grid" id="qr-grid"></div>
+        </div>
+
+        <!-- Sezione Simulazione -->
+        <div class="section">
+            <h2>🎮 Simula Scan (Click per testare)</h2>
+            <div class="sim-buttons" id="sim-buttons"></div>
+        </div>
+
+        <!-- Sezione Azioni -->
+        <div class="section">
+            <h2>⚡ Azioni Rapide</h2>
+            <div class="sim-buttons">
+                <button class="sim-btn all" onclick="simulateAll()">✨ Sblocca TUTTO</button>
+                <button class="sim-btn reset" onclick="resetProgress()">🗑️ Reset Progresso</button>
+                <a href="index.html" class="sim-btn" target="_blank">📊 Apri Dashboard</a>
+            </div>
+        </div>
+
+        <!-- Stato attuale -->
+        <div class="section">
+            <h2>📊 Stato Progresso Attuale</h2>
+            <div class="progress-display" id="progress-display"></div>
+        </div>
+    </div>
+
+    <script>
+        // ═══════════════════════════════════════
+        // CONFIGURAZIONE (deve matchare collect.html)
+        // ═══════════════════════════════════════
+        const CORSO = ["C", "L", "O", "U", "D"];
+        const KEYS = {
+            "0": "a1b2",
+            "1": "c3d4",
+            "2": "e5f6",
+            "3": "g7h8",
+            "4": "i9j0"
+        };
+
+        // ═══════════════════════════════════════
+
+        function getBaseUrl() {
+            // Rileva se siamo su file:// o http://
+            const current = window.location.href;
+            const base = current.substring(0, current.lastIndexOf('/') + 1);
+            return base + 'collect.html';
+        }
+
+        function generateQRs() {
+            const grid = document.getElementById('qr-grid');
+            const baseUrl = getBaseUrl();
+
+            CORSO.forEach((letter, index) => {
+                const key = KEYS[index];
+                const url = `${baseUrl}?pos=${index}&key=${key}`;
+
+                const card = document.createElement('div');
+                card.className = 'qr-card';
+                card.innerHTML = `
+                    <div class="letter">${letter}</div>
+                    <div class="pos">Posizione ${index}</div>
+                    <div class="qrcode" id="qr-${index}"></div>
+                    <div style="font-size:0.7rem; color:#555; word-break:break-all; margin-top:0.5rem;">${url}</div>
+                `;
+                grid.appendChild(card);
+
+                // Genera QR code
+                new QRCode(document.getElementById(`qr-${index}`), {
+                    text: url,
+                    width: 120,
+                    height: 120,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+            });
+        }
+
+        function generateSimButtons() {
+            const container = document.getElementById('sim-buttons');
+            const baseUrl = getBaseUrl();
+
+            CORSO.forEach((letter, index) => {
+                const key = KEYS[index];
+                const url = `${baseUrl}?pos=${index}&key=${key}`;
+
+                const btn = document.createElement('a');
+                btn.className = 'sim-btn';
+                btn.href = url;
+                btn.target = '_blank';
+                btn.innerHTML = `📷 Scan QR ${index} (${letter})`;
+                container.appendChild(btn);
+            });
+        }
+
+        function updateProgressDisplay() {
+            const progress = JSON.parse(localStorage.getItem('its_hunt_progress')) || {};
+            const display = document.getElementById('progress-display');
+            display.innerHTML = '';
+
+            CORSO.forEach((letter, index) => {
+                const slot = document.createElement('div');
+                const isFound = progress.hasOwnProperty(index.toString());
+                slot.className = `progress-slot ${isFound ? 'found' : ''}`;
+                slot.textContent = isFound ? letter : '?';
+                display.appendChild(slot);
+            });
+        }
+
+        function simulateAll() {
+            let progress = JSON.parse(localStorage.getItem('its_hunt_progress')) || {};
+            CORSO.forEach((letter, index) => {
+                progress[index] = letter;
+            });
+            localStorage.setItem('its_hunt_progress', JSON.stringify(progress));
+            updateProgressDisplay();
+            alert('✅ Tutte le lettere sbloccate! Apri index.html per vedere il risultato.');
+        }
+
+        function resetProgress() {
+            if (confirm('Sei sicuro di voler cancellare tutto il progresso?')) {
+                localStorage.removeItem('its_hunt_progress');
+                updateProgressDisplay();
+            }
+        }
+
+        // Inizializza
+        generateQRs();
+        generateSimButtons();
+        updateProgressDisplay();
+
+        // Aggiorna ogni secondo
+        setInterval(updateProgressDisplay, 1000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITS Hunt - Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+            text-shadow: none;
+        }
+
+        .header p {
+            color: #888;
+            font-size: 1rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            max-width: 400px;
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            margin: 1.5rem auto 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #00ccff);
+            border-radius: 4px;
+            transition: width 0.8s ease-out;
+            box-shadow: 0 0 15px rgba(0,255,136,0.4);
+        }
+
+        .progress-text {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: #00ff88;
+        }
+
+        /* Grid dei slot */
+        #grid-corso {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 3rem;
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+
+        .slot {
+            width: 100px;
+            height: 100px;
+            border-radius: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            position: relative;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: default;
+        }
+
+        /* Slot bloccato */
+        .slot.locked {
+            background: rgba(255,255,255,0.03);
+            border: 2px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.2);
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        .slot.locked::before {
+            content: "🔒";
+            font-size: 1.5rem;
+            filter: grayscale(1);
+            opacity: 0.5;
+        }
+
+        .slot.locked .letter {
+            display: none;
+        }
+
+        /* Slot sbloccato */
+        .slot.unlocked {
+            background: linear-gradient(135deg, rgba(0,255,136,0.15), rgba(0,204,255,0.15));
+            border: 2px solid rgba(0,255,136,0.5);
+            color: #00ff88;
+            text-shadow: 0 0 20px rgba(0,255,136,0.6);
+            box-shadow: 
+                0 0 30px rgba(0,255,136,0.2),
+                inset 0 0 20px rgba(0,255,136,0.05);
+            animation: glowPulse 2s ease-in-out infinite;
+        }
+
+        .slot.unlocked::before {
+            display: none;
+        }
+
+        .slot.unlocked .letter {
+            display: block;
+            animation: letterPop 0.6s ease-out;
+        }
+
+        @keyframes glowPulse {
+            0%, 100% { box-shadow: 0 0 30px rgba(0,255,136,0.2), inset 0 0 20px rgba(0,255,136,0.05); }
+            50% { box-shadow: 0 0 50px rgba(0,255,136,0.4), inset 0 0 30px rgba(0,255,136,0.1); }
+        }
+
+        @keyframes letterPop {
+            0% { transform: scale(0) rotate(-10deg); opacity: 0; }
+            60% { transform: scale(1.2) rotate(5deg); }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Messaggio finale */
+        .completion-message {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+            background: linear-gradient(135deg, rgba(0,255,136,0.1), rgba(0,204,255,0.1));
+            border: 2px solid rgba(0,255,136,0.3);
+            border-radius: 20px;
+            max-width: 500px;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .completion-message.show {
+            display: block;
+        }
+
+        .completion-message h2 {
+            font-size: 1.8rem;
+            color: #00ff88;
+            margin-bottom: 0.5rem;
+        }
+
+        .completion-message .word {
+            font-size: 3rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 0.3rem;
+            margin: 1rem 0;
+        }
+
+        /* Pulsante reset (debug) */
+        .debug-section {
+            margin-top: 2rem;
+            text-align: center;
+        }
+
+        .debug-section button {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #666;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s;
+        }
+
+        .debug-section button:hover {
+            border-color: rgba(255,68,68,0.5);
+            color: #ff4444;
+        }
+
+        /* Responsive */
+        @media (max-width: 500px) {
+            .header h1 { font-size: 1.8rem; }
+            .slot { width: 70px; height: 70px; font-size: 2rem; }
+            #grid-corso { gap: 1rem; }
+        }
+    </style>
+<base target="_blank">
+</head>
+<body>
+    <div class="header">
+        <h1>🔍 ITS Hunt</h1>
+        <p>Scansiona i QR code nascosti per svelare la parola segreta!</p>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <div class="progress-text" id="progress-text">0 / 5 lettere trovate</div>
+    </div>
+
+    <div id="grid-corso">
+        <!-- I slot verranno generati da JavaScript -->
+    </div>
+
+    <div class="completion-message" id="completion-message">
+        <h2>🎉 Complimenti!</h2>
+        <p>Hai trovato tutte le lettere!</p>
+        <div class="word" id="final-word"></div>
+        <p>La parola segreta è stata svelata!</p>
+    </div>
+
+    <div class="debug-section">
+        <button onclick="resetProgress()">🗑️ Reset Progresso (Debug)</button>
+    </div>
+
+    <script>
+        // ═══════════════════════════════════════
+        // CONFIGURAZIONE
+        // ═══════════════════════════════════════
+        const CORSO = ["C", "L", "O", "U", "D"];
+
+        // ═══════════════════════════════════════
+
+        function getProgress() {
+            return JSON.parse(localStorage.getItem('its_hunt_progress')) || {};
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById('grid-corso');
+            const progress = getProgress();
+            const foundCount = Object.keys(progress).length;
+
+            grid.innerHTML = '';
+
+            CORSO.forEach((letter, index) => {
+                const slot = document.createElement('div');
+                const isUnlocked = progress.hasOwnProperty(index.toString());
+
+                slot.className = `slot ${isUnlocked ? 'unlocked' : 'locked'}`;
+                slot.id = `slot-${index}`;
+
+                const letterSpan = document.createElement('span');
+                letterSpan.className = 'letter';
+                letterSpan.textContent = letter;
+                slot.appendChild(letterSpan);
+
+                grid.appendChild(slot);
+            });
+
+            // Aggiorna progress bar
+            const percentage = (foundCount / CORSO.length) * 100;
+            document.getElementById('progress-fill').style.width = percentage + '%';
+            document.getElementById('progress-text').textContent = 
+                `${foundCount} / ${CORSO.length} lettere trovate`;
+
+            // Mostra messaggio di completamento
+            if (foundCount === CORSO.length) {
+                const msg = document.getElementById('completion-message');
+                msg.classList.add('show');
+                document.getElementById('final-word').textContent = CORSO.join('');
+            }
+        }
+
+        function resetProgress() {
+            if (confirm('Sei sicuro di voler cancellare tutto il progresso?')) {
+                localStorage.removeItem('its_hunt_progress');
+                location.reload();
+            }
+        }
+
+        // Aggiorna la grid al caricamento
+        renderGrid();
+
+        // Aggiorna quando la pagina torna in focus (es. dopo scan QR)
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                renderGrid();
+            }
+        });
+
+        // Aggiorna ogni secondo per catturare cambiamenti da altre tab
+        setInterval(renderGrid, 1000);
+    </script>
+</body>
+</html>
