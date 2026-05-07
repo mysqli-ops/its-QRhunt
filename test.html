@@ -8,7 +8,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0d0d1a 100%);
             color: #fff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             min-height: 100vh;
@@ -21,7 +21,7 @@
         h1 {
             text-align: center;
             font-size: 2rem;
-            background: linear-gradient(135deg, #00ff88, #00ccff);
+            background: linear-gradient(135deg, #00aeef, #662d91);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -33,7 +33,6 @@
             margin-bottom: 2rem;
         }
 
-        /* Sezione QR */
         .section {
             background: rgba(255,255,255,0.03);
             border: 1px solid rgba(255,255,255,0.08);
@@ -42,7 +41,7 @@
             margin-bottom: 1.5rem;
         }
         .section h2 {
-            color: #00ff88;
+            color: #00aeef;
             font-size: 1.2rem;
             margin-bottom: 1rem;
             display: flex;
@@ -50,7 +49,6 @@
             gap: 0.5rem;
         }
 
-        /* Grid QR */
         .qr-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -58,20 +56,20 @@
         }
         .qr-card {
             background: rgba(0,0,0,0.3);
-            border: 1px solid rgba(0,255,136,0.15);
+            border: 1px solid rgba(0, 174, 239, 0.15);
             border-radius: 12px;
             padding: 1rem;
             text-align: center;
             transition: all 0.3s;
         }
         .qr-card:hover {
-            border-color: rgba(0,255,136,0.4);
+            border-color: rgba(0, 174, 239, 0.4);
             transform: translateY(-3px);
         }
         .qr-card .letter {
             font-size: 2rem;
             font-weight: bold;
-            color: #00ff88;
+            color: #00aeef;
             margin-bottom: 0.5rem;
         }
         .qr-card .pos {
@@ -91,7 +89,6 @@
             margin: 0 auto;
         }
 
-        /* Pulsanti simulazione */
         .sim-buttons {
             display: flex;
             flex-wrap: wrap;
@@ -100,9 +97,9 @@
             margin-top: 1rem;
         }
         .sim-btn {
-            background: linear-gradient(135deg, rgba(0,255,136,0.15), rgba(0,204,255,0.15));
-            border: 1px solid rgba(0,255,136,0.3);
-            color: #00ff88;
+            background: linear-gradient(135deg, rgba(0, 174, 239, 0.15), rgba(102, 45, 145, 0.15));
+            border: 1px solid rgba(0, 174, 239, 0.3);
+            color: #00aeef;
             padding: 10px 20px;
             border-radius: 10px;
             cursor: pointer;
@@ -115,13 +112,13 @@
             gap: 0.4rem;
         }
         .sim-btn:hover {
-            background: linear-gradient(135deg, rgba(0,255,136,0.3), rgba(0,204,255,0.3));
+            background: linear-gradient(135deg, rgba(0, 174, 239, 0.3), rgba(102, 45, 145, 0.3));
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0,255,136,0.15);
+            box-shadow: 0 8px 20px rgba(0, 174, 239, 0.15);
         }
         .sim-btn.all {
-            background: linear-gradient(135deg, #00ff88, #00ccff);
-            color: #000;
+            background: linear-gradient(135deg, #00aeef, #662d91);
+            color: #fff;
             border: none;
             font-weight: bold;
         }
@@ -134,7 +131,6 @@
             background: rgba(255,68,68,0.3);
         }
 
-        /* Stato progresso */
         .progress-display {
             display: flex;
             gap: 0.5rem;
@@ -156,16 +152,15 @@
             color: rgba(255,255,255,0.2);
         }
         .progress-slot.found {
-            border-color: rgba(0,255,136,0.5);
-            background: rgba(0,255,136,0.1);
-            color: #00ff88;
-            box-shadow: 0 0 15px rgba(0,255,136,0.2);
+            border-color: rgba(0, 174, 239, 0.5);
+            background: rgba(0, 174, 239, 0.1);
+            color: #00aeef;
+            box-shadow: 0 0 15px rgba(0, 174, 239, 0.2);
         }
 
-        /* Info box */
         .info-box {
-            background: rgba(0,255,136,0.05);
-            border-left: 3px solid #00ff88;
+            background: rgba(0, 174, 239, 0.05);
+            border-left: 3px solid #00aeef;
             padding: 1rem;
             border-radius: 0 8px 8px 0;
             margin-bottom: 1.5rem;
@@ -177,11 +172,10 @@
             background: rgba(0,0,0,0.4);
             padding: 2px 6px;
             border-radius: 4px;
-            color: #00ff88;
+            color: #00aeef;
             font-family: monospace;
         }
 
-        /* Responsive */
         @media (max-width: 500px) {
             h1 { font-size: 1.5rem; }
             .qr-grid { grid-template-columns: repeat(2, 1fr); }
@@ -202,19 +196,16 @@
             <em>Nota: con <code>file://</code> i QR potrebbero non funzionare correttamente. Usa i pulsanti qui sotto.</em>
         </div>
 
-        <!-- Sezione QR Code -->
         <div class="section">
             <h2>📱 QR Code Generati</h2>
             <div class="qr-grid" id="qr-grid"></div>
         </div>
 
-        <!-- Sezione Simulazione -->
         <div class="section">
             <h2>🎮 Simula Scan (Click per testare)</h2>
             <div class="sim-buttons" id="sim-buttons"></div>
         </div>
 
-        <!-- Sezione Azioni -->
         <div class="section">
             <h2>⚡ Azioni Rapide</h2>
             <div class="sim-buttons">
@@ -224,7 +215,6 @@
             </div>
         </div>
 
-        <!-- Stato attuale -->
         <div class="section">
             <h2>📊 Stato Progresso Attuale</h2>
             <div class="progress-display" id="progress-display"></div>
@@ -232,22 +222,24 @@
     </div>
 
     <script>
-        // ═══════════════════════════════════════
-        // CONFIGURAZIONE (deve matchare collect.html)
-        // ═══════════════════════════════════════
-        const CORSO = ["C", "L", "O", "U", "D"];
+        const _e = "Um9zc2VsbGluaQ==";
+        const CORSO = atob(_e).split('');
+        const LS_KEY = 'its_hunt_2026_openday';
+
         const KEYS = {
-            "0": "a1b2",
-            "1": "c3d4",
-            "2": "e5f6",
-            "3": "g7h8",
-            "4": "i9j0"
+            "0": "k9mP2xQv",
+            "1": "Lw7nR4tY",
+            "2": "Bj3hF8sD",
+            "3": "Za5eW1qU",
+            "4": "Xc6gV0iO",
+            "5": "Np8rT3lK",
+            "6": "Hm2jF7bZ",
+            "7": "Vd4wQ9sA",
+            "8": "Gy1kL6xC",
+            "9": "Rf5tE2nM"
         };
 
-        // ═══════════════════════════════════════
-
         function getBaseUrl() {
-            // Rileva se siamo su file:// o http://
             const current = window.location.href;
             const base = current.substring(0, current.lastIndexOf('/') + 1);
             return base + 'collect.html';
@@ -271,7 +263,6 @@
                 `;
                 grid.appendChild(card);
 
-                // Genera QR code
                 new QRCode(document.getElementById(`qr-${index}`), {
                     text: url,
                     width: 120,
@@ -301,7 +292,7 @@
         }
 
         function updateProgressDisplay() {
-            const progress = JSON.parse(localStorage.getItem('its_hunt_progress')) || {};
+            const progress = JSON.parse(localStorage.getItem(LS_KEY)) || {};
             const display = document.getElementById('progress-display');
             display.innerHTML = '';
 
@@ -315,28 +306,25 @@
         }
 
         function simulateAll() {
-            let progress = JSON.parse(localStorage.getItem('its_hunt_progress')) || {};
+            let progress = JSON.parse(localStorage.getItem(LS_KEY)) || {};
             CORSO.forEach((letter, index) => {
                 progress[index] = letter;
             });
-            localStorage.setItem('its_hunt_progress', JSON.stringify(progress));
+            localStorage.setItem(LS_KEY, JSON.stringify(progress));
             updateProgressDisplay();
             alert('✅ Tutte le lettere sbloccate! Apri index.html per vedere il risultato.');
         }
 
         function resetProgress() {
             if (confirm('Sei sicuro di voler cancellare tutto il progresso?')) {
-                localStorage.removeItem('its_hunt_progress');
+                localStorage.removeItem(LS_KEY);
                 updateProgressDisplay();
             }
         }
 
-        // Inizializza
         generateQRs();
         generateSimButtons();
         updateProgressDisplay();
-
-        // Aggiorna ogni secondo
         setInterval(updateProgressDisplay, 1000);
     </script>
 </body>

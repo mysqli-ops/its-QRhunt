@@ -1,71 +1,110 @@
 # 🔍 ITS Hunt - Caccia al Tesoro QR
 
-Sistema di caccia al tesoro basato su QR Code per eventi ITS.
+Sistema di caccia al tesoro basato su QR Code per eventi ITS Open Day.
+I partecipanti scansionano QR code nascosti per svelare una parola segreta, lettera per lettera.
 
-## 📁 File
+---
+
+## 📁 File del progetto
 
 | File | Descrizione |
 |------|-------------|
-| `index.html` | Dashboard principale - la pagina che i partecipanti tengono aperta |
-| `collect.html` | Pagina di raccolta invisibile - raggiunta tramite QR code |
+| `index.html` | **Dashboard principale** — la pagina che i partecipanti tengono aperta durante la caccia |
+| `collect.html` | **Pagina di raccolta invisibile** — raggiunta tramite scan dei QR code, salva le lettere trovate |
+| `test.html` | **Pagina di debug** — genera QR code al volo, simula scan, mostra stato progresso |
+
+---
 
 ## 🚀 Come usarlo
 
 ### 1. Configura la parola segreta
 
-In **entrambi i file**, modifica la costante `CORSO`:
+In **tutti e tre i file**, modifica la costante offuscata:
 
 ```javascript
-const CORSO = ["C", "L", "O", "U", "D"];  // La tua parola
+const _e = "Um9zc2VsbGluaQ==";  // btoa("Rossellini")
+const CORSO = atob(_e).split('');
 ```
 
-### 2. Genera i QR Code
-
-Usa un generatore di QR Code (come [qr-code-generator.com](https://www.qr-code-generator.com)) con questi URL:
-
-| QR | URL |
-|----|-----|
-| QR 1 | `https://tuosito.it/collect.html?pos=0&key=a1b2` |
-| QR 2 | `https://tuosito.it/collect.html?pos=1&key=c3d4` |
-| QR 3 | `https://tuosito.it/collect.html?pos=2&key=e5f6` |
-| QR 4 | `https://tuosito.it/collect.html?pos=3&key=g7h8` |
-| QR 5 | `https://tuosito.it/collect.html?pos=4&key=i9j0` |
-
-> ⚠️ **Importante**: Cambia le chiavi (`key`) in produzione! Sono nel dizionario `KEYS` in `collect.html`.
-
-### 3. Attiva i Quiz (opzionale)
-
-In `collect.html`, imposta:
-
+Per cambiare parola:
 ```javascript
-const QUIZ_ATTIVO = true;
+btoa("NUOVA_PAROLA")  // → incolla il risultato in _e
 ```
 
-E configura le domande:
+### 2. Genera le chiavi di sicurezza
+
+In `collect.html` e `test.html`, il dizionario `KEYS` contiene le chiavi univoche per ogni posizione:
 
 ```javascript
-const QUIZ = {
-    "0": { question: "Quanti bit ha un byte?", answer: "8" },
-    "1": { question: "Che protocollo usa la porta 80?", answer: "http" },
-    // ...
+const KEYS = {
+    "0": "k9mP2xQv",
+    "1": "Lw7nR4tY",
+    // ... una chiave diversa per ogni lettera
 };
 ```
 
+**Regole:**
+- Ogni chiave deve essere **univoca** (non ripetuta)
+
+
+### 3. Genera i QR Code
+
+Usa un generatore di QR Code online (es. [qr-code-generator.com](https://www.qr-code-generator.com)) con questi URL:
+
+```
+https://TUO-SITO.github.io/its-QRhunt/collect.html?pos=0&key=k9mP2xQv
+https://TUO-SITO.github.io/its-QRhunt/collect.html?pos=1&key=Lw7nR4tY
+...
+```
+
+Ogni QR contiene:
+- `pos` = posizione della lettera nella parola (0-based)
+- `key` = chiave di sicurezza che valida il QR
+
+### 4. Deploy su GitHub Pages
+
+1. Carica i file in un repository GitHub
+2. Attiva GitHub Pages in **Settings → Pages**
+3. Il sito sarà live in 1-2 minuti
+
+---
+
 ## 🔒 Sicurezza
 
-- Le chiavi (`key`) impediscono di indovinare le lettere cambiando solo `pos`
-- Ogni QR ha una chiave univoca
-- Il progresso è salvato in `localStorage` (persiste nel browser)
+- **Chiavi univoche**: ogni QR ha una chiave diversa
+- **Offuscamento base64**: la parola non appare in chiaro nel sorgente
+- **localStorage namespaced**: `its_hunt_2026_openday`
 
-## 🎨 Personalizzazione
+---
 
-- Modifica i colori nelle variabili CSS
-- Cambia le animazioni
-- Aggiungi un timer o una classifica
-- Integra con un backend per salvare i punteggi
+## 🧪 Test in locale
 
-## 📝 Note
+Apri `test.html` nel browser. Ti permette di:
+- Vedere i QR code generati al volo
+- Simulare gli scan con un click
+- Sbloccare tutte le lettere istantaneamente
+- Resetare il progresso
+- Monitorare lo stato del localStorage
 
-- Il sistema funziona **completamente offline** (solo frontend)
-- Per un sistema multi-utente, serve un backend con database
-- Il pulsante "Reset" in basso a destra è solo per debug
+---
+
+## 📝 Note tecniche
+
+- **100% frontend**
+- **Nessun backend necessario**: il progresso è salvato nel `localStorage` del browser
+- **Cross-tab sync**: la dashboard si aggiorna automaticamente
+- **Responsive**: funziona su desktop, tablet e smartphone
+
+---
+
+## 🆘 Debug
+
+Se qualcosa non funziona:
+1. Apri `collect.html` con i parametri nell'URL e controlla la console (F12)
+2. Verifica che `pos` e `key` siano corretti
+3. Controlla che `localStorage` contenga `its_hunt_2026_openday`
+4. Usa il pulsante "Reset Progresso" in `test.html` per ripartire da zero
+
+---
+
+*Creato per l'Open Day ITS 2026*

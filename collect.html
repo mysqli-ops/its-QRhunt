@@ -23,22 +23,21 @@
         .loader {
             width: 60px;
             height: 60px;
-            border: 4px solid rgba(0, 255, 136, 0.2);
-            border-top: 4px solid #00ff88;
+            border: 4px solid rgba(0, 174, 239, 0.2);
+            border-top: 4px solid #00aeef;
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin: 0 auto 1.5rem;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .message { font-size: 1.2rem; color: #00ff88; }
+        .message { font-size: 1.2rem; color: #00aeef; }
         .error { color: #ff4444; }
-        .success { color: #00ff88; }
+        .success { color: #00aeef; }
 
-        /* Sezione Quiz (inizialmente nascosta) */
         #quiz-section {
             display: none;
             background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(0,255,136,0.3);
+            border: 1px solid rgba(102, 45, 145, 0.4);
             border-radius: 16px;
             padding: 2rem;
             max-width: 450px;
@@ -46,7 +45,7 @@
             backdrop-filter: blur(10px);
         }
         #quiz-section h2 {
-            color: #00ff88;
+            color: #00aeef;
             margin-bottom: 1rem;
             font-size: 1.3rem;
         }
@@ -58,7 +57,7 @@
         #quiz-section input {
             width: 100%;
             padding: 12px 16px;
-            border: 2px solid rgba(0,255,136,0.3);
+            border: 2px solid rgba(0, 174, 239, 0.3);
             border-radius: 8px;
             background: rgba(0,0,0,0.5);
             color: #fff;
@@ -68,15 +67,15 @@
             transition: border-color 0.3s;
         }
         #quiz-section input:focus {
-            border-color: #00ff88;
+            border-color: #00aeef;
         }
         #quiz-section button {
             width: 100%;
             padding: 12px;
-            background: linear-gradient(135deg, #00ff88, #00cc6a);
+            background: linear-gradient(135deg, #00aeef, #662d91);
             border: none;
             border-radius: 8px;
-            color: #000;
+            color: #fff;
             font-weight: bold;
             font-size: 1rem;
             cursor: pointer;
@@ -84,7 +83,7 @@
         }
         #quiz-section button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0,255,136,0.3);
+            box-shadow: 0 8px 20px rgba(0, 174, 239, 0.3);
         }
         .feedback {
             margin-top: 1rem;
@@ -98,16 +97,16 @@
             color: #ff4444;
         }
         .feedback.success {
-            background: rgba(0,255,136,0.15);
-            border: 1px solid rgba(0,255,136,0.4);
-            color: #00ff88;
+            background: rgba(0, 174, 239, 0.15);
+            border: 1px solid rgba(0, 174, 239, 0.4);
+            color: #00aeef;
         }
         .letter-reveal {
             font-size: 4rem;
             font-weight: bold;
-            color: #00ff88;
+            color: #00aeef;
             margin: 1rem 0;
-            text-shadow: 0 0 30px rgba(0,255,136,0.5);
+            text-shadow: 0 0 30px rgba(0, 174, 239, 0.5);
             animation: popIn 0.5s ease-out;
         }
         @keyframes popIn {
@@ -120,13 +119,11 @@
 </head>
 <body>
     <div class="container">
-        <!-- Stato di caricamento iniziale -->
         <div id="loading-state">
             <div class="loader"></div>
             <p class="message">Verifica in corso...</p>
         </div>
 
-        <!-- Sezione Quiz (per attivazione futura) -->
         <div id="quiz-section">
             <h2>🎯 Sfida QR!</h2>
             <p id="quiz-question">Hai trovato un indizio! Rispondi correttamente per sbloccare la lettera.</p>
@@ -136,41 +133,36 @@
             <div class="feedback" id="feedback"></div>
         </div>
 
-        <!-- Messaggio errore -->
         <div id="error-state" style="display:none;">
             <p class="message error">❌ QR Code non valido o già utilizzato.</p>
+            <p style="color:#666; font-size:0.85rem; margin-top:1rem;" id="debug-info"></p>
         </div>
     </div>
 
     <script>
-        // ═══════════════════════════════════════
-        // CONFIGURAZIONE - MODIFICA QUI
-        // ═══════════════════════════════════════
+        const _e = "Um9zc2VsbGluaQ==";
+        const CORSO = atob(_e).split('');
 
-        const CORSO = ["C", "L", "O", "U", "D"];
-
-        // Chiavi di sicurezza per ogni posizione
         const KEYS = {
-            "0": "a1b2",
-            "1": "c3d4",
-            "2": "e5f6",
-            "3": "g7h8",
-            "4": "i9j0"
+            "0": "k9mP2xQv",
+            "1": "Lw7nR4tY",
+            "2": "Bj3hF8sD",
+            "3": "Za5eW1qU",
+            "4": "Xc6gV0iO",
+            "5": "Np8rT3lK",
+            "6": "Hm2jF7bZ",
+            "7": "Vd4wQ9sA",
+            "8": "Gy1kL6xC",
+            "9": "Rf5tE2nM"
         };
 
-        // Quiz opzionali per ogni posizione (null = nessun quiz)
         const QUIZ = {
-            "0": null,  // { question: "Domanda 1?", answer: "risposta" }
-            "1": null,
-            "2": null,
-            "3": null,
-            "4": null
+            "0": null, "1": null, "2": null, "3": null, "4": null,
+            "5": null, "6": null, "7": null, "8": null, "9": null
         };
 
-        // Attiva/disattiva i quiz globalmente
-        const QUIZ_ATTIVO = false;
-
-        // ═══════════════════════════════════════
+        const QUIZ_ATTIVO = true;
+        const LS_KEY = 'its_hunt_2026_openday';
 
         const urlParams = new URLSearchParams(window.location.search);
         const pos = urlParams.get('pos');
@@ -181,22 +173,28 @@
         }
 
         function salvaLettera(position) {
-            let progress = JSON.parse(localStorage.getItem('its_hunt_progress')) || {};
+            let progress = JSON.parse(localStorage.getItem(LS_KEY)) || {};
             progress[position] = CORSO[position];
-            localStorage.setItem('its_hunt_progress', JSON.stringify(progress));
+            localStorage.setItem(LS_KEY, JSON.stringify(progress));
         }
 
         function letteraGiaTrovata(position) {
-            let progress = JSON.parse(localStorage.getItem('its_hunt_progress')) || {};
+            let progress = JSON.parse(localStorage.getItem(LS_KEY)) || {};
             return progress.hasOwnProperty(position);
         }
+
+        const DEBUG = false;
 
         function mostraErrore() {
             document.getElementById('loading-state').style.display = 'none';
             document.getElementById('error-state').style.display = 'block';
+            if (DEBUG) {
+                const debug = document.getElementById('debug-info');
+                if (debug) debug.innerHTML = `pos=${pos}, key=${key}, valido=${validaKey(pos, key)}`;
+            }
             setTimeout(() => {
-                window.location.href = 'index.html';
-            }, 2500);
+                window.location.replace(new URL('index.html', window.location.href).href);
+            }, 3500);
         }
 
         function mostraQuiz() {
@@ -210,8 +208,6 @@
             }
 
             document.getElementById('quiz-answer').focus();
-
-            // Invio con tasto Enter
             document.getElementById('quiz-answer').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') checkAnswer();
             });
@@ -222,7 +218,6 @@
             const quizData = QUIZ[pos];
             const feedback = document.getElementById('feedback');
 
-            // Se non c'è quiz configurato, accetta qualsiasi risposta non vuota
             const rispostaCorretta = quizData ? input === quizData.answer.toLowerCase() : input.length > 0;
 
             if (rispostaCorretta) {
@@ -232,7 +227,7 @@
                 feedback.style.display = 'block';
 
                 setTimeout(() => {
-                    window.location.href = 'index.html';
+                    window.location.replace(new URL('index.html', window.location.href).href);
                 }, 1500);
             } else {
                 feedback.className = 'feedback error';
@@ -245,32 +240,26 @@
 
         function redirectToDashboard() {
             salvaLettera(pos);
-            window.location.href = 'index.html';
+            window.location.replace(new URL('index.html', window.location.href).href);
         }
 
-        // ═══════════════════════════════════════
-        // LOGICA PRINCIPALE
-        // ═══════════════════════════════════════
+        console.log("URL params:", { pos: pos, key: key });
+        console.log("Valida key:", validaKey(pos, key));
+        console.log("Protocollo:", window.location.protocol);
 
-        // Validazione parametri
         if (pos === null || key === null || !validaKey(pos, key)) {
             mostraErrore();
         } else {
             const posInt = parseInt(pos);
 
-            // Verifica che la posizione sia valida
             if (isNaN(posInt) || posInt < 0 || posInt >= CORSO.length) {
                 mostraErrore();
             } else if (letteraGiaTrovata(pos)) {
-                // Già trovata, redirect comunque alla dashboard
-                window.location.href = 'index.html';
+                window.location.replace(new URL('index.html', window.location.href).href);
             } else {
-                // Lettera nuova!
                 if (QUIZ_ATTIVO && QUIZ[pos]) {
-                    // Mostra il quiz
                     setTimeout(mostraQuiz, 800);
                 } else {
-                    // Salva direttamente e redirect
                     setTimeout(redirectToDashboard, 1000);
                 }
             }

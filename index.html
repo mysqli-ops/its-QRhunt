@@ -8,7 +8,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0d0d1a 100%);
             color: #fff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             min-height: 100vh;
@@ -19,7 +19,6 @@
             overflow-x: hidden;
         }
 
-        /* Header */
         .header {
             text-align: center;
             margin-bottom: 3rem;
@@ -28,12 +27,11 @@
 
         .header h1 {
             font-size: 2.5rem;
-            background: linear-gradient(135deg, #00ff88, #00ccff);
+            background: linear-gradient(135deg, #00aeef, #662d91);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             margin-bottom: 0.5rem;
-            text-shadow: none;
         }
 
         .header p {
@@ -53,19 +51,18 @@
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #00ff88, #00ccff);
+            background: linear-gradient(90deg, #00aeef, #662d91);
             border-radius: 4px;
             transition: width 0.8s ease-out;
-            box-shadow: 0 0 15px rgba(0,255,136,0.4);
+            box-shadow: 0 0 15px rgba(0, 174, 239, 0.4);
         }
 
         .progress-text {
             margin-top: 0.5rem;
             font-size: 0.9rem;
-            color: #00ff88;
+            color: #00aeef;
         }
 
-        /* Grid dei slot */
         #grid-corso {
             display: flex;
             gap: 1.5rem;
@@ -89,7 +86,6 @@
             cursor: default;
         }
 
-        /* Slot bloccato */
         .slot.locked {
             background: rgba(255,255,255,0.03);
             border: 2px solid rgba(255,255,255,0.1);
@@ -108,17 +104,19 @@
             display: none;
         }
 
-        /* Slot sbloccato */
         .slot.unlocked {
-            background: linear-gradient(135deg, rgba(0,255,136,0.15), rgba(0,204,255,0.15));
-            border: 2px solid rgba(0,255,136,0.5);
-            color: #00ff88;
-            text-shadow: 0 0 20px rgba(0,255,136,0.6);
-            box-shadow: 
-                0 0 30px rgba(0,255,136,0.2),
-                inset 0 0 20px rgba(0,255,136,0.05);
-            animation: glowPulse 2s ease-in-out infinite;
+        background: linear-gradient(135deg, rgba(0, 174, 239, 0.15), rgba(102, 45, 145, 0.15));
+         border: 2px solid rgba(0, 174, 239, 0.5);
+         color: #00aeef;
+         text-shadow: 0 0 20px rgba(0, 174, 239, 0.6);
+         box-shadow: 
+        0 0 30px rgba(0, 174, 239, 0.2),
+        inset 0 0 20px rgba(0, 174, 239, 0.05);
         }
+
+.slot.unlocked.last-found {
+    animation: glowPulse 2s ease-in-out infinite;
+}
 
         .slot.unlocked::before {
             display: none;
@@ -130,8 +128,8 @@
         }
 
         @keyframes glowPulse {
-            0%, 100% { box-shadow: 0 0 30px rgba(0,255,136,0.2), inset 0 0 20px rgba(0,255,136,0.05); }
-            50% { box-shadow: 0 0 50px rgba(0,255,136,0.4), inset 0 0 30px rgba(0,255,136,0.1); }
+            0%, 100% { box-shadow: 0 0 30px rgba(0, 174, 239, 0.2), inset 0 0 20px rgba(0, 174, 239, 0.05); }
+            50% { box-shadow: 0 0 50px rgba(0, 174, 239, 0.4), inset 0 0 30px rgba(0, 174, 239, 0.1); }
         }
 
         @keyframes letterPop {
@@ -150,32 +148,31 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Messaggio finale */
         .completion-message {
             display: none;
             text-align: center;
             padding: 2rem;
-            background: linear-gradient(135deg, rgba(0,255,136,0.1), rgba(0,204,255,0.1));
-            border: 2px solid rgba(0,255,136,0.3);
+            background: linear-gradient(135deg, rgba(0, 174, 239, 0.1), rgba(102, 45, 145, 0.1));
+            border: 2px solid rgba(0, 174, 239, 0.3);
             border-radius: 20px;
             max-width: 500px;
-            animation: fadeInUp 0.8s ease-out;
         }
 
         .completion-message.show {
             display: block;
+            animation: fadeInUp 0.8s ease-out;
         }
 
         .completion-message h2 {
             font-size: 1.8rem;
-            color: #00ff88;
+            color: #00aeef;
             margin-bottom: 0.5rem;
         }
 
         .completion-message .word {
             font-size: 3rem;
             font-weight: bold;
-            background: linear-gradient(135deg, #00ff88, #00ccff);
+            background: linear-gradient(135deg, #00aeef, #662d91);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -183,7 +180,6 @@
             margin: 1rem 0;
         }
 
-        /* Pulsante reset (debug) */
         .debug-section {
             margin-top: 2rem;
             text-align: center;
@@ -205,7 +201,6 @@
             color: #ff4444;
         }
 
-        /* Responsive */
         @media (max-width: 500px) {
             .header h1 { font-size: 1.8rem; }
             .slot { width: 70px; height: 70px; font-size: 2rem; }
@@ -221,12 +216,10 @@
         <div class="progress-bar">
             <div class="progress-fill" id="progress-fill"></div>
         </div>
-        <div class="progress-text" id="progress-text">0 / 5 lettere trovate</div>
+        <div class="progress-text" id="progress-text">0 / 10 lettere trovate</div>
     </div>
 
-    <div id="grid-corso">
-        <!-- I slot verranno generati da JavaScript -->
-    </div>
+    <div id="grid-corso"></div>
 
     <div class="completion-message" id="completion-message">
         <h2>🎉 Complimenti!</h2>
@@ -240,15 +233,12 @@
     </div>
 
     <script>
-        // ═══════════════════════════════════════
-        // CONFIGURAZIONE
-        // ═══════════════════════════════════════
-        const CORSO = ["C", "L", "O", "U", "D"];
-
-        // ═══════════════════════════════════════
+        const _e = "Um9zc2VsbGluaQ==";
+        const CORSO = atob(_e).split('');
+        const LS_KEY = 'its_hunt_2026_openday';
 
         function getProgress() {
-            return JSON.parse(localStorage.getItem('its_hunt_progress')) || {};
+            return JSON.parse(localStorage.getItem(LS_KEY)) || {};
         }
 
         function renderGrid() {
@@ -273,13 +263,22 @@
                 grid.appendChild(slot);
             });
 
-            // Aggiorna progress bar
+            //glowPulse solo all'ultimo slot sbloccato
+            const lastIndex = Object.keys(progress)
+                 .map(Number)
+                .sort((a, b) => a - b)
+                 .pop();
+
+            if (lastIndex !== undefined) {
+                const lastSlot = document.getElementById(`slot-${lastIndex}`);
+                if (lastSlot) lastSlot.classList.add('last-found');
+            }
+
             const percentage = (foundCount / CORSO.length) * 100;
             document.getElementById('progress-fill').style.width = percentage + '%';
             document.getElementById('progress-text').textContent = 
                 `${foundCount} / ${CORSO.length} lettere trovate`;
 
-            // Mostra messaggio di completamento
             if (foundCount === CORSO.length) {
                 const msg = document.getElementById('completion-message');
                 msg.classList.add('show');
@@ -289,23 +288,18 @@
 
         function resetProgress() {
             if (confirm('Sei sicuro di voler cancellare tutto il progresso?')) {
-                localStorage.removeItem('its_hunt_progress');
+                localStorage.removeItem(LS_KEY);
                 location.reload();
             }
         }
 
-        // Aggiorna la grid al caricamento
-        renderGrid();
-
-        // Aggiorna quando la pagina torna in focus (es. dopo scan QR)
         document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') {
-                renderGrid();
-            }
+            if (document.visibilityState === 'visible') renderGrid();
         });
 
-        // Aggiorna ogni secondo per catturare cambiamenti da altre tab
         setInterval(renderGrid, 1000);
+
+        renderGrid();
     </script>
 </body>
 </html>
