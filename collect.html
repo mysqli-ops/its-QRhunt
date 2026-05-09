@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ITS Hunt - Raccolta</title>
+    <title>ITS Hunt - Domanda</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -19,6 +19,8 @@
         .container {
             text-align: center;
             padding: 2rem;
+            max-width: 500px;
+            width: 100%;
         }
         .loader {
             width: 60px;
@@ -32,236 +34,300 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         .message { font-size: 1.2rem; color: #00aeef; }
         .error { color: #ff4444; }
-        .success { color: #00aeef; }
 
+        /* Sezione Quiz */
         #quiz-section {
             display: none;
             background: rgba(255,255,255,0.05);
             border: 1px solid rgba(102, 45, 145, 0.4);
             border-radius: 16px;
             padding: 2rem;
-            max-width: 450px;
-            margin: 0 auto;
             backdrop-filter: blur(10px);
         }
         #quiz-section h2 {
             color: #00aeef;
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
             font-size: 1.3rem;
         }
-        #quiz-section p {
-            color: #ccc;
+        .question-counter {
+            color: #666;
+            font-size: 0.85rem;
+            margin-bottom: 1.5rem;
+        }
+        #quiz-question {
+            color: #fff;
+            font-size: 1.1rem;
             margin-bottom: 1.5rem;
             line-height: 1.5;
+            text-align: left;
         }
-        #quiz-section input {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid rgba(0, 174, 239, 0.3);
-            border-radius: 8px;
-            background: rgba(0,0,0,0.5);
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        .option-btn {
+            padding: 14px 16px;
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(0, 174, 239, 0.2);
+            border-radius: 10px;
             color: #fff;
-            font-size: 1rem;
-            margin-bottom: 1rem;
-            outline: none;
-            transition: border-color 0.3s;
-        }
-        #quiz-section input:focus {
-            border-color: #00aeef;
-        }
-        #quiz-section button {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #00aeef, #662d91);
-            border: none;
-            border-radius: 8px;
-            color: #fff;
-            font-weight: bold;
             font-size: 1rem;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: all 0.3s;
+            text-align: left;
+            position: relative;
         }
-        #quiz-section button:hover {
+        .option-btn:hover {
+            border-color: rgba(0, 174, 239, 0.5);
+            background: rgba(0, 174, 239, 0.08);
+        }
+        .option-btn.selected {
+            border-color: #00aeef;
+            background: rgba(0, 174, 239, 0.15);
+            box-shadow: 0 0 15px rgba(0, 174, 239, 0.2);
+        }
+        .option-btn.correct {
+            border-color: #00ff88;
+            background: rgba(0, 255, 136, 0.15);
+        }
+        .option-btn.wrong {
+            border-color: #ff4444;
+            background: rgba(255, 68, 68, 0.15);
+        }
+        .confirm-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #00aeef, #662d91);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        .confirm-btn.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .confirm-btn.active:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 174, 239, 0.3);
+            box-shadow: 0 8px 25px rgba(0, 174, 239, 0.3);
         }
         .feedback {
             margin-top: 1rem;
-            padding: 10px;
-            border-radius: 8px;
+            padding: 12px;
+            border-radius: 10px;
             display: none;
+            font-size: 1rem;
         }
-        .feedback.error {
-            background: rgba(255,68,68,0.15);
-            border: 1px solid rgba(255,68,68,0.4);
+        .feedback.correct {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.4);
+            color: #00ff88;
+        }
+        .feedback.wrong {
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid rgba(255, 68, 68, 0.4);
             color: #ff4444;
         }
-        .feedback.success {
-            background: rgba(0, 174, 239, 0.15);
-            border: 1px solid rgba(0, 174, 239, 0.4);
-            color: #00aeef;
-        }
-        .letter-reveal {
-            font-size: 4rem;
-            font-weight: bold;
-            color: #00aeef;
-            margin: 1rem 0;
-            text-shadow: 0 0 30px rgba(0, 174, 239, 0.5);
-            animation: popIn 0.5s ease-out;
-        }
-        @keyframes popIn {
-            0% { transform: scale(0); opacity: 0; }
-            70% { transform: scale(1.1); }
-            100% { transform: scale(1); opacity: 1; }
+
+        #error-state {
+            display: none;
         }
     </style>
+    <base target="_blank">
 <base target="_blank">
 </head>
 <body>
     <div class="container">
         <div id="loading-state">
             <div class="loader"></div>
-            <p class="message">Verifica in corso...</p>
+            <p class="message">Caricamento domanda...</p>
         </div>
 
         <div id="quiz-section">
             <h2>🎯 Sfida QR!</h2>
-            <p id="quiz-question">Hai trovato un indizio! Rispondi correttamente per sbloccare la lettera.</p>
-            <div class="letter-reveal" id="letter-display">?</div>
-            <input type="text" id="quiz-answer" placeholder="Scrivi la tua risposta..." autocomplete="off">
-            <button id="submit-answer" onclick="checkAnswer()">Verifica Risposta</button>
+            <p class="question-counter">Domanda <span id="q-num">1</span> di <span id="q-total">5</span></p>
+            <p id="quiz-question"></p>
+            <div class="options-grid" id="options-grid"></div>
+            <button class="confirm-btn" id="confirm-btn" onclick="confermaRisposta()">Conferma Risposta</button>
             <div class="feedback" id="feedback"></div>
         </div>
 
-        <div id="error-state" style="display:none;">
+        <div id="error-state">
             <p class="message error">❌ QR Code non valido o già utilizzato.</p>
-            <p style="color:#666; font-size:0.85rem; margin-top:1rem;" id="debug-info"></p>
         </div>
     </div>
 
     <script>
-        const _e = "Um9zc2VsbGluaQ==";
-        const CORSO = atob(_e).split('');
+        const DEBUG = false;
+        const LS_KEY = 'its_hunt_2026_openday';
+
+        const QUIZ = {
+            "0": {
+                question: "In quale anno è stato fondato l'ITS Roberto Rossellini?",
+                options: ["2010", "2012", "2015", "2018"],
+                answer: 1
+            },
+            "1": {
+                question: "In quale settore tecnologico forma principalmente l'ITS Rossellini?",
+                options: ["Biotecnologie", "Cinema e Audiovisivo", "Cybersecurity e ICT", "Energie Rinnovabili"],
+                answer: 2
+            },
+            "2": {
+                question: "Dove si trova la sede principale dell'ITS Rossellini?",
+                options: ["Milano", "Napoli", "Roma", "Torino"],
+                answer: 2
+            },
+            "3": {
+                question: "Cosa significa l'acronimo ITS?",
+                options: [
+                    "Istituto Tecnico Superiore",
+                    "Istituto di Tecnologia e Scienza",
+                    "Istituto Tecnico Sperimentale",
+                    "Istituto di Training Specializzato"
+                ],
+                answer: 0
+            },
+            "4": {
+                question: "A quale figura del cinema italiano è dedicato l'istituto?",
+                options: ["Federico Fellini", "Sergio Leone", "Roberto Rossellini", "Luchino Visconti"],
+                answer: 2
+            }
+        };
 
         const KEYS = {
             "0": "k9mP2xQv",
             "1": "Lw7nR4tY",
             "2": "Bj3hF8sD",
             "3": "Za5eW1qU",
-            "4": "Xc6gV0iO",
-            "5": "Np8rT3lK",
-            "6": "Hm2jF7bZ",
-            "7": "Vd4wQ9sA",
-            "8": "Gy1kL6xC",
-            "9": "Rf5tE2nM"
+            "4": "Xc6gV0iO"
         };
-
-        const QUIZ = {
-            "0": null, "1": null, "2": null, "3": null, "4": null,
-            "5": null, "6": null, "7": null, "8": null, "9": null
-        };
-
-        const QUIZ_ATTIVO = true;
-        const LS_KEY = 'its_hunt_2026_openday';
 
         const urlParams = new URLSearchParams(window.location.search);
         const pos = urlParams.get('pos');
         const key = urlParams.get('key');
 
+        let selectedOption = null;
+
         function validaKey(position, token) {
             return KEYS[position] === token;
         }
 
-        function salvaLettera(position) {
-            let progress = JSON.parse(localStorage.getItem(LS_KEY)) || {};
-            progress[position] = CORSO[position];
+        function getProgress() {
+            return JSON.parse(localStorage.getItem(LS_KEY)) || {};
+        }
+
+        function salvaRisposta(position) {
+            let progress = getProgress();
+            progress[position] = true;
             localStorage.setItem(LS_KEY, JSON.stringify(progress));
         }
 
-        function letteraGiaTrovata(position) {
-            let progress = JSON.parse(localStorage.getItem(LS_KEY)) || {};
-            return progress.hasOwnProperty(position);
+        function domandaGiaRisolta(position) {
+            return getProgress().hasOwnProperty(position);
         }
-
-        const DEBUG = false;
 
         function mostraErrore() {
             document.getElementById('loading-state').style.display = 'none';
             document.getElementById('error-state').style.display = 'block';
-            if (DEBUG) {
-                const debug = document.getElementById('debug-info');
-                if (debug) debug.innerHTML = `pos=${pos}, key=${key}, valido=${validaKey(pos, key)}`;
-            }
             setTimeout(() => {
                 window.location.replace(new URL('index.html', window.location.href).href);
-            }, 3500);
+            }, 3000);
         }
 
-        function mostraQuiz() {
+        function mostraDomanda() {
             document.getElementById('loading-state').style.display = 'none';
             document.getElementById('quiz-section').style.display = 'block';
-            document.getElementById('letter-display').textContent = CORSO[pos];
 
             const quizData = QUIZ[pos];
-            if (quizData) {
-                document.getElementById('quiz-question').textContent = quizData.question;
-            }
+            const totalQuestions = Object.keys(QUIZ).length;
+            const qIndex = parseInt(pos) + 1;
 
-            document.getElementById('quiz-answer').focus();
-            document.getElementById('quiz-answer').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') checkAnswer();
+            document.getElementById('q-num').textContent = qIndex;
+            document.getElementById('q-total').textContent = totalQuestions;
+            document.getElementById('quiz-question').textContent = quizData.question;
+
+            const grid = document.getElementById('options-grid');
+            grid.innerHTML = '';
+
+            quizData.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.textContent = opt;
+                btn.onclick = () => selezionaOpzione(idx, btn);
+                grid.appendChild(btn);
             });
         }
 
-        function checkAnswer() {
-            const input = document.getElementById('quiz-answer').value.trim().toLowerCase();
+        function selezionaOpzione(index, btnElement) {
+            selectedOption = index;
+
+            document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+            btnElement.classList.add('selected');
+
+            const confirmBtn = document.getElementById('confirm-btn');
+            confirmBtn.classList.add('active');
+
+            document.getElementById('feedback').style.display = 'none';
+        }
+
+        function confermaRisposta() {
+            if (selectedOption === null) return;
+
             const quizData = QUIZ[pos];
             const feedback = document.getElementById('feedback');
+            const confirmBtn = document.getElementById('confirm-btn');
 
-            const rispostaCorretta = quizData ? input === quizData.answer.toLowerCase() : input.length > 0;
+            if (selectedOption === quizData.answer) {
+                salvaRisposta(pos);
 
-            if (rispostaCorretta) {
-                salvaLettera(pos);
-                feedback.className = 'feedback success';
-                feedback.textContent = '✅ Corretto! Lettera sbloccata!';
+                document.querySelectorAll('.option-btn')[selectedOption].classList.add('correct');
+
+                feedback.className = 'feedback correct';
+                feedback.textContent = '✅ Corretto! Vai alla dashboard per continuare.';
                 feedback.style.display = 'block';
+
+                confirmBtn.style.display = 'none';
 
                 setTimeout(() => {
                     window.location.replace(new URL('index.html', window.location.href).href);
-                }, 1500);
+                }, 2000);
             } else {
-                feedback.className = 'feedback error';
+                document.querySelectorAll('.option-btn')[selectedOption].classList.add('wrong');
+
+                feedback.className = 'feedback wrong';
                 feedback.textContent = '❌ Risposta errata. Riprova!';
                 feedback.style.display = 'block';
-                document.getElementById('quiz-answer').value = '';
-                document.getElementById('quiz-answer').focus();
+
+                selectedOption = null;
+                confirmBtn.classList.remove('active');
+
+                setTimeout(() => {
+                    document.querySelectorAll('.option-btn').forEach(b => {
+                        b.classList.remove('selected', 'wrong');
+                    });
+                    feedback.style.display = 'none';
+                }, 1500);
             }
         }
-
-        function redirectToDashboard() {
-            salvaLettera(pos);
-            window.location.replace(new URL('index.html', window.location.href).href);
-        }
-
-        console.log("URL params:", { pos: pos, key: key });
-        console.log("Valida key:", validaKey(pos, key));
-        console.log("Protocollo:", window.location.protocol);
 
         if (pos === null || key === null || !validaKey(pos, key)) {
             mostraErrore();
         } else {
             const posInt = parseInt(pos);
 
-            if (isNaN(posInt) || posInt < 0 || posInt >= CORSO.length) {
+            if (isNaN(posInt) || posInt < 0 || posInt >= Object.keys(QUIZ).length) {
                 mostraErrore();
-            } else if (letteraGiaTrovata(pos)) {
+            } else if (domandaGiaRisolta(pos)) {
                 window.location.replace(new URL('index.html', window.location.href).href);
             } else {
-                if (QUIZ_ATTIVO && QUIZ[pos]) {
-                    setTimeout(mostraQuiz, 800);
-                } else {
-                    setTimeout(redirectToDashboard, 1000);
-                }
+                setTimeout(mostraDomanda, 600);
             }
         }
     </script>

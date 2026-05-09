@@ -1,7 +1,7 @@
 # 🔍 ITS Hunt - Caccia al Tesoro QR
 
 Sistema di caccia al tesoro basato su QR Code per eventi ITS Open Day.
-I partecipanti scansionano QR code nascosti per svelare una parola segreta, lettera per lettera.
+I partecipanti scansionano QR code nascosti, rispondono a domande a scelta multipla, e ottengono un QR di verifica da mostrare al banchetto per ritirare il gadget.
 
 ---
 
@@ -9,45 +9,56 @@ I partecipanti scansionano QR code nascosti per svelare una parola segreta, lett
 
 | File | Descrizione |
 |------|-------------|
-| `index.html` | **Dashboard principale** — la pagina che i partecipanti tengono aperta durante la caccia |
-| `collect.html` | **Pagina di raccolta invisibile** — raggiunta tramite scan dei QR code, salva le lettere trovate |
-| `test.html` | **Pagina di debug** — genera QR code al volo, simula scan, mostra stato progresso |
+| `index.html` | **Dashboard partecipante** — mostra il progresso domande e genera il QR di verifica finale |
+| `collect.html` | **Pagina domanda** — raggiunta tramite scan del QR nascosto, mostra la domanda a scelta multipla |
+| `verify.html` | **Pagina di verifica** — aperta dal banchetto dopo scan del QR finale; mostra ✅ verde o ❌ rosso |
+| `test.html` | **Pagina di debug** — genera QR, simula scan, mostra stato progresso (**non deployare su GitHub Pages**) |
 
 ---
 
 ## 🚀 Come usarlo
 
-### 1. Configura la parola segreta
+### 1. Configura le domande
 
-In **tutti e tre i file**, modifica la costante offuscata:
+In `collect.html`, modifica il dizionario `QUIZ`:
 
 ```javascript
-const _e = "Um9zc2VsbGluaQ==";  // btoa("Rossellini")
-const CORSO = atob(_e).split('');
+const QUIZ = {
+    "0": {
+        question: "Testo della domanda",
+        options: ["Opzione A", "Opzione B", "Opzione C", "Opzione D"],
+        answer: 0  // indice (0-based) della risposta corretta
+    },
+    // una entry per ogni domanda...
+};
 ```
 
-Per cambiare parola:
-```javascript
-btoa("NUOVA_PAROLA")  // → incolla il risultato in _e
-```
+Per aggiungere una domanda: aggiungi una entry in `QUIZ` e una corrispondente in `KEYS` (vedi sotto). Aggiorna anche `TOTAL_QUESTIONS` in `index.html` e `EXPECTED_COUNT` in `verify.html`.
 
-### 2. Genera le chiavi di sicurezza
+### 2. Configura le chiavi di sicurezza
 
-In `collect.html` e `test.html`, il dizionario `KEYS` contiene le chiavi univoche per ogni posizione:
+In `collect.html` e `test.html`, il dizionario `KEYS` associa ogni posizione a una chiave univoca:
 
 ```javascript
 const KEYS = {
     "0": "k9mP2xQv",
     "1": "Lw7nR4tY",
-    // ... una chiave diversa per ogni lettera
+    // una chiave per ogni domanda, tutte univoche
 };
 ```
 
-**Regole:**
-- Ogni chiave deve essere **univoca** (non ripetuta)
+### 3. Aggiorna le costanti di scala
 
+Quando cambia il numero di domande, aggiorna questi tre valori:
 
-### 3. Genera i QR Code
+| File | Costante | Valore attuale |
+|------|----------|----------------|
+| `index.html` | `TOTAL_QUESTIONS` | `5` |
+| `verify.html` | `EXPECTED_COUNT` | `5` |
+
+`EXPECTED_KEYS` in `verify.html` è generato automaticamente da `EXPECTED_COUNT` — non va modificato manualmente.
+
+### 4. Genera i QR Code
 
 Usa un generatore di QR Code online (es. [qr-code-generator.com](https://www.qr-code-generator.com)) con questi URL:
 
@@ -58,41 +69,47 @@ https://TUO-SITO.github.io/its-QRhunt/collect.html?pos=1&key=Lw7nR4tY
 ```
 
 Ogni QR contiene:
-- `pos` = posizione della lettera nella parola (0-based)
+- `pos` = indice della domanda (0-based)
 - `key` = chiave di sicurezza che valida il QR
 
-### 4. Deploy su GitHub Pages
+In alternativa, usa `test.html` per generarli e stamparli direttamente.
 
-1. Carica i file in un repository GitHub
+### 5. Deploy su GitHub Pages
+
+1. Carica `index.html`, `collect.html`, `verify.html` nel repository (**non** `test.html`)
 2. Attiva GitHub Pages in **Settings → Pages**
 3. Il sito sarà live in 1-2 minuti
+4. Aggiorna gli URL dei QR con il dominio GitHub Pages definitivo
 
 ---
 
 ## 🔒 Sicurezza
 
-- **Chiavi univoche**: ogni QR ha una chiave diversa
-- **Offuscamento base64**: la parola non appare in chiaro nel sorgente
-- **localStorage namespaced**: `its_hunt_2026_openday`
+- **Chiavi univoche**: ogni QR ha una chiave diversa — un QR non può essere riusato per un'altra domanda
+- **Token base64url**: il QR di verifica finale codifica il progresso in un token URL-safe firmato con `SALT`
+- **`DEBUG = false`**: nessuna info sensibile esposta nell'HTML pubblico di `collect.html`
+- **`localStorage` namespaced**: `its_hunt_2026_openday`
 
 ---
 
 ## 🧪 Test in locale
 
-Apri `test.html` nel browser. Ti permette di:
-- Vedere i QR code generati al volo
-- Simulare gli scan con un click
-- Sbloccare tutte le lettere istantaneamente
-- Resetare il progresso
-- Monitorare lo stato del localStorage
+Apri `test.html` nel browser. Permette di:
+- Visualizzare i QR code di tutte le domande
+- Simulare la scansione di ogni QR con un click
+- Risolvere tutte le domande istantaneamente ("Risolvi TUTTO")
+- Aprire `verify.html` con token generato dal progresso attuale
+- Resettare il progresso
+- Monitorare lo stato del localStorage in tempo reale
 
 ---
 
 ## 📝 Note tecniche
 
-- **100% frontend**
-- **Nessun backend necessario**: il progresso è salvato nel `localStorage` del browser
-- **Cross-tab sync**: la dashboard si aggiorna automaticamente
+- **100% frontend** — nessun backend, nessun server
+- **Progresso in localStorage**: persistente nel browser del partecipante
+- **Cross-tab sync**: la dashboard si aggiorna via `visibilitychange` + `setInterval` fallback
+- **Token di verifica**: `btoa(SALT + ':' + count + ':' + sortedKeys)` con encoding base64url (URL-safe)
 - **Responsive**: funziona su desktop, tablet e smartphone
 
 ---
@@ -100,11 +117,12 @@ Apri `test.html` nel browser. Ti permette di:
 ## 🆘 Debug
 
 Se qualcosa non funziona:
-1. Apri `collect.html` con i parametri nell'URL e controlla la console (F12)
-2. Verifica che `pos` e `key` siano corretti
-3. Controlla che `localStorage` contenga `its_hunt_2026_openday`
-4. Usa il pulsante "Reset Progresso" in `test.html` per ripartire da zero
+1. Apri `collect.html?pos=0&key=k9mP2xQv` e controlla la console (F12)
+2. Verifica che `pos` e `key` corrispondano esattamente a quelli in `KEYS`
+3. Controlla che `localStorage` contenga la chiave `its_hunt_2026_openday`
+4. Usa "Reset Progresso" in `test.html` per ripartire da zero
+5. Per testare `verify.html`, usa il pulsante "Apri Verify (con token)" in `test.html` dopo aver risolto tutte le domande
 
 ---
 
-*Creato per l'Open Day ITS 2026*
+*Creato per l'Open Day ITS Rossellini 2026*

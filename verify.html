@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITS Hunt - Verifica</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #fff;
+            text-align: center;
+            transition: background 0.5s;
+        }
+
+        body.valid {
+            background: linear-gradient(135deg, #0a2a1a 0%, #0d3d1f 50%, #0a2a1a 100%);
+        }
+
+        body.invalid {
+            background: linear-gradient(135deg, #2a0a0a 0%, #3d0d0d 50%, #2a0a0a 100%);
+        }
+
+        body.loading {
+            background: #0a0a0a;
+        }
+
+        .container {
+            padding: 2rem;
+            max-width: 500px;
+        }
+
+        .icon {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            line-height: 1.5;
+        }
+
+        .details {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-family: monospace;
+        }
+
+        .stamp {
+            margin-top: 2rem;
+            font-size: 0.8rem;
+            opacity: 0.5;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body class="loading">
+    <div class="container">
+        <div class="icon" id="icon">⏳</div>
+        <h1 id="title">Verifica in corso...</h1>
+        <p id="message">Attendere prego</p>
+        <div class="details" id="details" style="display:none;"></div>
+        <div class="stamp" id="stamp"></div>
+    </div>
+
+    <script>
+        const SALT = "ITS2026OD";
+
+        // ── unico punto da aggiornare per scalare il numero di domande ──
+        const EXPECTED_COUNT = 5;                                                      // number
+        const EXPECTED_KEYS  = Array.from({ length: EXPECTED_COUNT }, (_, i) => i).join(''); // "01234"
+
+        function fromBase64Url(str) {
+            const padding = 4 - (str.length % 4);
+            if (padding !== 4) str += '='.repeat(padding);
+            str = str.replace(/-/g, '+').replace(/_/g, '/');
+            return atob(str);
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+
+        function verificaToken(token) {
+            if (!token) return { valid: false, reason: 'Token mancante' };
+
+            try {
+                const decoded = fromBase64Url(token);
+                const parts   = decoded.split(':');
+
+                if (parts.length !== 3) {
+                    return { valid: false, reason: 'Formato token non valido' };
+                }
+
+                const [salt, count, keys] = parts;
+
+                if (salt !== SALT) {
+                    return { valid: false, reason: 'Salt non valido' };
+                }
+
+                if (count !== String(EXPECTED_COUNT)) {
+                    return { valid: false, reason: 'Conteggio non valido: ' + count + ' invece di ' + EXPECTED_COUNT };
+                }
+
+                if (keys !== EXPECTED_KEYS) {
+                    return { valid: false, reason: 'Chiavi non complete' };
+                }
+
+                return { valid: true, count, keys };
+            } catch (e) {
+                return { valid: false, reason: 'Errore decodifica: ' + e.message };
+            }
+        }
+
+        function mostraRisultato(result) {
+            const body    = document.body;
+            const icon    = document.getElementById('icon');
+            const title   = document.getElementById('title');
+            const message = document.getElementById('message');
+            const details = document.getElementById('details');
+            const stamp   = document.getElementById('stamp');
+
+            body.classList.remove('loading');
+
+            if (result.valid) {
+                body.classList.add('valid');
+                icon.textContent    = '✅';
+                title.textContent   = 'Partecipante Verificato!';
+                title.style.color   = '#00ff88';
+                message.textContent = 'Tutte le domande sono state risolte correttamente. Consegna il gadget!';
+                details.style.display = 'block';
+                details.textContent = 'Domande risolte: ' + result.count + '/' + EXPECTED_COUNT;
+            } else {
+                body.classList.add('invalid');
+                icon.textContent    = '❌';
+                title.textContent   = 'Token Non Valido';
+                title.style.color   = '#ff4444';
+                message.textContent = 'Il partecipante non ha completato tutte le domande o il QR è stato manomesso.';
+                details.style.display = 'block';
+                details.textContent = 'Motivo: ' + result.reason;
+            }
+
+            stamp.textContent = 'ITS Hunt 2026 — Open Day Rossellini';
+        }
+
+        setTimeout(() => {
+            const result = verificaToken(token);
+            mostraRisultato(result);
+        }, 800);
+    </script>
+</body>
+</html>

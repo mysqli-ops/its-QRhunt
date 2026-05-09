@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ITS Hunt - Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -63,7 +64,7 @@
             color: #00aeef;
         }
 
-        #grid-corso {
+        #grid-domande {
             display: flex;
             gap: 1.5rem;
             flex-wrap: wrap;
@@ -100,31 +101,31 @@
             opacity: 0.5;
         }
 
-        .slot.locked .letter {
+        .slot.locked .status-icon {
             display: none;
         }
 
-        .slot.unlocked {
-        background: linear-gradient(135deg, rgba(0, 174, 239, 0.15), rgba(102, 45, 145, 0.15));
-         border: 2px solid rgba(0, 174, 239, 0.5);
-         color: #00aeef;
-         text-shadow: 0 0 20px rgba(0, 174, 239, 0.6);
-         box-shadow: 
-        0 0 30px rgba(0, 174, 239, 0.2),
-        inset 0 0 20px rgba(0, 174, 239, 0.05);
+        .slot.solved {
+            background: linear-gradient(135deg, rgba(0, 174, 239, 0.15), rgba(102, 45, 145, 0.15));
+            border: 2px solid rgba(0, 174, 239, 0.5);
+            color: #00aeef;
+            text-shadow: 0 0 20px rgba(0, 174, 239, 0.6);
+            box-shadow: 
+                0 0 30px rgba(0, 174, 239, 0.2),
+                inset 0 0 20px rgba(0, 174, 239, 0.05);
         }
 
-.slot.unlocked.last-found {
-    animation: glowPulse 2s ease-in-out infinite;
-}
+        .slot.solved.last-found {
+            animation: glowPulse 2s ease-in-out infinite;
+        }
 
-        .slot.unlocked::before {
+        .slot.solved::before {
             display: none;
         }
 
-        .slot.unlocked .letter {
+        .slot.solved .status-icon {
             display: block;
-            animation: letterPop 0.6s ease-out;
+            animation: iconPop 0.6s ease-out;
         }
 
         @keyframes glowPulse {
@@ -132,7 +133,7 @@
             50% { box-shadow: 0 0 50px rgba(0, 174, 239, 0.4), inset 0 0 30px rgba(0, 174, 239, 0.1); }
         }
 
-        @keyframes letterPop {
+        @keyframes iconPop {
             0% { transform: scale(0) rotate(-10deg); opacity: 0; }
             60% { transform: scale(1.2) rotate(5deg); }
             100% { transform: scale(1) rotate(0deg); opacity: 1; }
@@ -156,6 +157,7 @@
             border: 2px solid rgba(0, 174, 239, 0.3);
             border-radius: 20px;
             max-width: 500px;
+            width: 100%;
         }
 
         .completion-message.show {
@@ -169,15 +171,24 @@
             margin-bottom: 0.5rem;
         }
 
-        .completion-message .word {
-            font-size: 3rem;
+        .completion-message p {
+            color: #ccc;
+            margin-bottom: 1.5rem;
+        }
+
+        .qr-verify {
+            background: #fff;
+            padding: 12px;
+            border-radius: 12px;
+            display: inline-block;
+            margin: 0.5rem 0;
+        }
+
+        .completion-message .prize-text {
+            font-size: 1.2rem;
+            color: #00ff88;
+            margin-top: 1rem;
             font-weight: bold;
-            background: linear-gradient(135deg, #00aeef, #662d91);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            letter-spacing: 0.3rem;
-            margin: 1rem 0;
         }
 
         .debug-section {
@@ -204,28 +215,29 @@
         @media (max-width: 500px) {
             .header h1 { font-size: 1.8rem; }
             .slot { width: 70px; height: 70px; font-size: 2rem; }
-            #grid-corso { gap: 1rem; }
+            #grid-domande { gap: 1rem; }
         }
     </style>
+    <base target="_blank">
 <base target="_blank">
 </head>
 <body>
     <div class="header">
         <h1>🔍 ITS Hunt</h1>
-        <p>Scansiona i QR code nascosti per svelare la parola segreta!</p>
+        <p>Scansiona i QR code nascosti e rispondi alle domande!</p>
         <div class="progress-bar">
             <div class="progress-fill" id="progress-fill"></div>
         </div>
-        <div class="progress-text" id="progress-text">0 / 10 lettere trovate</div>
+        <div class="progress-text" id="progress-text">0 / 5 domande risolte</div>
     </div>
 
-    <div id="grid-corso"></div>
+    <div id="grid-domande"></div>
 
     <div class="completion-message" id="completion-message">
         <h2>🎉 Complimenti!</h2>
-        <p>Hai trovato tutte le lettere!</p>
-        <div class="word" id="final-word"></div>
-        <p>La parola segreta è stata svelata!</p>
+        <p>Hai risolto tutte le domande!</p>
+        <div class="qr-verify" id="qr-verify"></div>
+        <p class="prize-text">📱 Mostra questo QR al banchetto Prod per ritirare il gadget!</p>
     </div>
 
     <div class="debug-section">
@@ -233,56 +245,92 @@
     </div>
 
     <script>
-        const _e = "Um9zc2VsbGluaQ==";
-        const CORSO = atob(_e).split('');
         const LS_KEY = 'its_hunt_2026_openday';
+        const SALT = "ITS2026OD";
+
+        const QUIZ = {
+            "0": { question: "Anno fondazione ITS" },
+            "1": { question: "Settore tecnologico" },
+            "2": { question: "Sede principale" },
+            "3": { question: "Significato ITS" },
+            "4": { question: "Figura cinema" }
+        };
 
         function getProgress() {
             return JSON.parse(localStorage.getItem(LS_KEY)) || {};
         }
 
+        // Base64url encoding: sicuro per URL (no +, /, =)
+        function toBase64Url(str) {
+            return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+        }
+
+        function generateToken(progress) {
+            const foundCount = Object.keys(progress).length;
+            const sortedKeys = Object.keys(progress).sort().join('');
+            const payload = SALT + ':' + foundCount + ':' + sortedKeys;
+            return toBase64Url(payload);
+        }
+
         function renderGrid() {
-            const grid = document.getElementById('grid-corso');
+            const grid = document.getElementById('grid-domande');
             const progress = getProgress();
             const foundCount = Object.keys(progress).length;
+            const totalQuestions = Object.keys(QUIZ).length;
 
             grid.innerHTML = '';
 
-            CORSO.forEach((letter, index) => {
+            for (let i = 0; i < totalQuestions; i++) {
                 const slot = document.createElement('div');
-                const isUnlocked = progress.hasOwnProperty(index.toString());
+                const isSolved = progress.hasOwnProperty(i.toString());
 
-                slot.className = `slot ${isUnlocked ? 'unlocked' : 'locked'}`;
-                slot.id = `slot-${index}`;
+                slot.className = `slot ${isSolved ? 'solved' : 'locked'}`;
+                slot.id = `slot-${i}`;
 
-                const letterSpan = document.createElement('span');
-                letterSpan.className = 'letter';
-                letterSpan.textContent = letter;
-                slot.appendChild(letterSpan);
+                const icon = document.createElement('span');
+                icon.className = 'status-icon';
+                icon.textContent = isSolved ? '✅' : '🔒';
+                slot.appendChild(icon);
 
                 grid.appendChild(slot);
-            });
+            }
 
-            //glowPulse solo all'ultimo slot sbloccato
-            const lastIndex = Object.keys(progress)
-                 .map(Number)
-                .sort((a, b) => a - b)
-                 .pop();
+            // glowPulse solo sull'ultimo slot risolto
+            const solvedIndices = Object.keys(progress)
+                .map(Number)
+                .sort((a, b) => a - b);
 
-            if (lastIndex !== undefined) {
+            if (solvedIndices.length > 0) {
+                const lastIndex = solvedIndices[solvedIndices.length - 1];
                 const lastSlot = document.getElementById(`slot-${lastIndex}`);
                 if (lastSlot) lastSlot.classList.add('last-found');
             }
 
-            const percentage = (foundCount / CORSO.length) * 100;
+            const percentage = (foundCount / totalQuestions) * 100;
             document.getElementById('progress-fill').style.width = percentage + '%';
             document.getElementById('progress-text').textContent = 
-                `${foundCount} / ${CORSO.length} lettere trovate`;
+                `${foundCount} / ${totalQuestions} domande risolte`;
 
-            if (foundCount === CORSO.length) {
-                const msg = document.getElementById('completion-message');
+            const msg = document.getElementById('completion-message');
+            if (foundCount === totalQuestions) {
                 msg.classList.add('show');
-                document.getElementById('final-word').textContent = CORSO.join('');
+
+                const qrContainer = document.getElementById('qr-verify');
+                qrContainer.innerHTML = '';
+
+                const token = generateToken(progress);
+                const verifyUrl = new URL('verify.html', window.location.href).href + '?token=' + token;
+
+                new QRCode(qrContainer, {
+                    text: verifyUrl,
+                    width: 180,
+                    height: 180,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+            } else {
+                msg.classList.remove('show');
             }
         }
 
