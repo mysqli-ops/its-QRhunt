@@ -1,3 +1,4 @@
+  /* File scritto da Giosuè Nicastro con aiuto di AI */
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -67,6 +68,7 @@
             font-family: monospace;
         }
     </style>
+<base target="_blank">
 </head>
 <body class="loading">
     <div class="container">
@@ -79,14 +81,15 @@
 
     <script>
         const SALT = "ITS2026OD";
-
-        // ── unico punto da aggiornare per scalare il numero di domande ──
-        const EXPECTED_COUNT = 5;                                                      // number
-        const EXPECTED_KEYS  = Array.from({ length: EXPECTED_COUNT }, (_, i) => i).join(''); // "01234"
+        const EXPECTED_COUNT = "10"; // minimo risposte corrette per vincere
+        const TOTAL_QUESTIONS = 12;
+        const EXPECTED_KEYS = Array.from({length: TOTAL_QUESTIONS}, (_, i) => i).join('');
 
         function fromBase64Url(str) {
             const padding = 4 - (str.length % 4);
-            if (padding !== 4) str += '='.repeat(padding);
+            if (padding !== 4) {
+                str += '='.repeat(padding);
+            }
             str = str.replace(/-/g, '+').replace(/_/g, '/');
             return atob(str);
         }
@@ -99,7 +102,7 @@
 
             try {
                 const decoded = fromBase64Url(token);
-                const parts   = decoded.split(':');
+                const parts = decoded.split(':');
 
                 if (parts.length !== 3) {
                     return { valid: false, reason: 'Formato token non valido' };
@@ -111,44 +114,46 @@
                     return { valid: false, reason: 'Salt non valido' };
                 }
 
-                if (count !== String(EXPECTED_COUNT)) {
-                    return { valid: false, reason: 'Conteggio non valido: ' + count + ' invece di ' + EXPECTED_COUNT };
+                if (parseInt(count) < parseInt(EXPECTED_COUNT)) {
+                    return { valid: false, reason: 'Solo ' + count + ' risposte corrette, ne servono almeno ' + EXPECTED_COUNT };
                 }
 
                 if (keys !== EXPECTED_KEYS) {
-                    return { valid: false, reason: 'Chiavi non complete' };
+                    return { valid: false, reason: 'Domande incomplete: ' + keys.length + '/' + TOTAL_QUESTIONS };
                 }
 
                 return { valid: true, count, keys };
             } catch (e) {
-                return { valid: false, reason: 'Errore decodifica: ' + e.message };
+                return { valid: false, reason: 'Errore decodifica token: ' + e.message };
             }
         }
 
         function mostraRisultato(result) {
-            const body    = document.body;
-            const icon    = document.getElementById('icon');
-            const title   = document.getElementById('title');
+            const body = document.body;
+            const icon = document.getElementById('icon');
+            const title = document.getElementById('title');
             const message = document.getElementById('message');
             const details = document.getElementById('details');
-            const stamp   = document.getElementById('stamp');
+            const stamp = document.getElementById('stamp');
 
             body.classList.remove('loading');
 
             if (result.valid) {
                 body.classList.add('valid');
-                icon.textContent    = '✅';
-                title.textContent   = 'Partecipante Verificato!';
-                title.style.color   = '#00ff88';
-                message.textContent = 'Tutte le domande sono state risolte correttamente. Consegna il gadget!';
+                icon.textContent = '✅';
+                title.textContent = 'Partecipante Verificato!';
+                title.style.color = '#00ff88';
+                message.textContent = 'Il partecipante ha completato tutte le domande con almeno ' + EXPECTED_COUNT + ' risposte corrette. Consegna il gadget!';
+
                 details.style.display = 'block';
-                details.textContent = 'Domande risolte: ' + result.count + '/' + EXPECTED_COUNT;
+                details.textContent = 'Risposte corrette: ' + result.count + '/' + TOTAL_QUESTIONS;
             } else {
                 body.classList.add('invalid');
-                icon.textContent    = '❌';
-                title.textContent   = 'Token Non Valido';
-                title.style.color   = '#ff4444';
-                message.textContent = 'Il partecipante non ha completato tutte le domande o il QR è stato manomesso.';
+                icon.textContent = '❌';
+                title.textContent = 'Token Non Valido';
+                title.style.color = '#ff4444';
+                message.textContent = 'Il partecipante non ha completato tutte le domande o non ha raggiunto il punteggio minimo.';
+
                 details.style.display = 'block';
                 details.textContent = 'Motivo: ' + result.reason;
             }

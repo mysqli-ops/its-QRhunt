@@ -146,3 +146,53 @@ Fixato
 Rimosso
 
     encodeURIComponent() nel passaggio token → URL (non più necessario con base64url)
+
+
+  v3.0.0 — 12 Domande, Meccanica 10/12, Categorie ITS (2026-05-09) — BREAKING CHANGE
+Il sistema è stato espanso da 5 a 12 domande con meccanica soglia 10/12 per vincere. Il localStorage precedente non è compatibile (formato dati cambiato: da progress[pos] = true a progress[pos] = true/false per tracciare anche le risposte errate).
+Aggiunto
+
+    12 domande complete divise per categorie ITS:
+        Produzione (3 domande): documenti scena, figura produzione, acronimo ODG
+        Sound (2 domande): Ennio Morricone, Foley Artist
+        Videomaker (2 domande): Regola dei Terzi, Panoramica
+        Fotografia (1 domanda): Temperatura colore Kelvin
+        Game e VFX (2 domande): Motion Capture, Unreal Engine
+        Cyber Security (2 domande): Vulnerability Assessment, Firewall
+    Meccanica soglia 10/12: per vincere servono almeno 10 risposte corrette su 12
+    Score board in index.html: mostra conteggio separato di corrette ✅, errate ❌, e rimanenti 🔒
+    Visualizzazione risposte errate: slot rossi con ❌ nella griglia dashboard
+    Call to action in schermata vittoria: pulsante "🏆 Vai allo stand Produzione" con link a verify
+    simulateMixed() in test.html: simula 10 corrette / 2 errate per testare la soglia di vittoria
+    Categoria tag in collect.html: mostra la categoria della domanda (Produzione, Sound, ecc.)
+
+Modificato
+
+    collect.html:
+        QUIZ espanso a 12 entry con categorie
+        KEYS espanso a 12 chiavi uniche
+        TOTAL_QUESTIONS = 12
+        Salva progress[pos] = true (corretta) o progress[pos] = false (errata)
+        Retry illimitato: risposta errata → reset selezione, nessun blocca
+    index.html:
+        TOTAL_QUESTIONS = 12
+        WIN_THRESHOLD = 10
+        Griglia 12 slot con colori: verde (corretto), rosso (errato), grigio (non tentato)
+        Token di verifica include conteggio corrette nel payload
+        Schermata completamento differenziata: vittoria (≥10) vs sconfitta (<10)
+        QUIZ ridotto a label categoria per non duplicare dati
+    verify.html:
+        EXPECTED_COUNT = "10" (minimo risposte corrette)
+        TOTAL_QUESTIONS = 12
+        EXPECTED_KEYS generato dinamicamente da TOTAL_QUESTIONS
+        Messaggi specifici per conteggio insufficiente
+    test.html:
+        TOTAL_QUESTIONS = 12
+        WIN_THRESHOLD = 10
+        Progress display: 12 slot con ✅/❌/🔒
+        Pulsante "Simula 10 corrette / 2 errate"
+
+Rimosso
+
+    5 domande originali generiche sostituite da 12 domande specifiche ITS
+    Sistema "tutte le domande devono essere corrette" sostituito da "almeno 10/12"

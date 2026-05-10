@@ -1,3 +1,4 @@
+  /* File scritto da Giosuè Nicastro con aiuto di AI */
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -19,7 +20,7 @@
         .container {
             text-align: center;
             padding: 2rem;
-            max-width: 500px;
+            max-width: 550px;
             width: 100%;
         }
         .loader {
@@ -35,7 +36,6 @@
         .message { font-size: 1.2rem; color: #00aeef; }
         .error { color: #ff4444; }
 
-        /* Sezione Quiz */
         #quiz-section {
             display: none;
             background: rgba(255,255,255,0.05);
@@ -43,6 +43,19 @@
             border-radius: 16px;
             padding: 2rem;
             backdrop-filter: blur(10px);
+        }
+        #quiz-section .category-tag {
+            display: inline-block;
+            background: linear-gradient(135deg, rgba(0,174,239,0.2), rgba(102,45,145,0.2));
+            border: 1px solid rgba(0,174,239,0.3);
+            color: #00aeef;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
         }
         #quiz-section h2 {
             color: #00aeef;
@@ -136,9 +149,7 @@
             color: #ff4444;
         }
 
-        #error-state {
-            display: none;
-        }
+        #error-state { display: none; }
     </style>
     <base target="_blank">
 <base target="_blank">
@@ -151,8 +162,9 @@
         </div>
 
         <div id="quiz-section">
+            <div class="category-tag" id="category-tag">Categoria</div>
             <h2>🎯 Sfida QR!</h2>
-            <p class="question-counter">Domanda <span id="q-num">1</span> di <span id="q-total">5</span></p>
+            <p class="question-counter">Domanda <span id="q-num">1</span> di <span id="q-total">12</span></p>
             <p id="quiz-question"></p>
             <div class="options-grid" id="options-grid"></div>
             <button class="confirm-btn" id="confirm-btn" onclick="confermaRisposta()">Conferma Risposta</button>
@@ -167,46 +179,37 @@
     <script>
         const DEBUG = false;
         const LS_KEY = 'its_hunt_2026_openday';
+        const TOTAL_QUESTIONS = 12;
+        const WIN_THRESHOLD = 10;
 
         const QUIZ = {
-            "0": {
-                question: "In quale anno è stato fondato l'ITS Roberto Rossellini?",
-                options: ["2010", "2012", "2015", "2018"],
-                answer: 1
-            },
-            "1": {
-                question: "In quale settore tecnologico forma principalmente l'ITS Rossellini?",
-                options: ["Biotecnologie", "Cinema e Audiovisivo", "Cybersecurity e ICT", "Energie Rinnovabili"],
-                answer: 2
-            },
-            "2": {
-                question: "Dove si trova la sede principale dell'ITS Rossellini?",
-                options: ["Milano", "Napoli", "Roma", "Torino"],
-                answer: 2
-            },
-            "3": {
-                question: "Cosa significa l'acronimo ITS?",
-                options: [
-                    "Istituto Tecnico Superiore",
-                    "Istituto di Tecnologia e Scienza",
-                    "Istituto Tecnico Sperimentale",
-                    "Istituto di Training Specializzato"
-                ],
-                answer: 0
-            },
-            "4": {
-                question: "A quale figura del cinema italiano è dedicato l'istituto?",
-                options: ["Federico Fellini", "Sergio Leone", "Roberto Rossellini", "Luchino Visconti"],
-                answer: 2
-            }
+            "0": { category: "Produzione", question: "Quale dei seguenti documenti NON serve a capire quando e/o dove si gira una scena?", options: ["Contratto attori", "Piano riprese", "Lista catering", "Sceneggiatura"], answer: 2 },
+            "1": { category: "Produzione", question: "Quale figura si occupa di organizzare budget, troupe e tempi di produzione di un film o programma TV?", options: ["Regista", "Montatore", "Produttore", "Scenografo"], answer: 2 },
+            "2": { category: "Produzione", question: "Cosa significa l'acronimo ODG (documento tecnico della produzione con le indicazioni logistiche del set)?", options: ["Organizzazione Dati Generali", "Ordine Del Giorno", "Obiettivo Di Girato", "Operatore Di Grafica"], answer: 1 },
+            "3": { category: "Sound", question: 'Chi ha composto le musiche del film "Il Buono, Il Brutto ed il Cattivo"?', options: ["Ennio Morricone", "Nino Rota", "Hans Zimmer", "John Williams"], answer: 0 },
+            "4": { category: "Sound", question: "Chi crea effetti sonori come passi, pioggia o porte che cigolano?", options: ["Cameraman", "Foley Artist", "Stuntman", "Aiuto Regista"], answer: 1 },
+            "5": { category: "Videomaker", question: 'Un bravo videomaker deve conoscere la "Regola dei Terzi" per la composizione. Dove va posizionato il soggetto principale?', options: ["Esattamente al centro dell'inquadratura", "Lungo le linee di intersezione della griglia", "Fuori fuoco in un angolo"], answer: 1 },
+            "6": { category: "Videomaker", question: "Quando il videomaker sposta la macchina da presa orizzontalmente (da destra a sinistra o viceversa), fissa su un cavalletto che ruota sul proprio asse, cosa sta effettuando?", options: ["un Tilt", "uno Zoom", "una Carrellata", "una Panoramica"], answer: 3 },
+            "7": { category: "Fotografia", question: "La temperatura colore della luce si misura in gradi _________", options: ["Kelvin", "Celsius", "Fahrenheit"], answer: 0 },
+            "8": { category: "Game e VFX", question: "Qual è la tecnica che permette di catturare i movimenti di un attore reale per applicarli a un personaggio 3D (come Gollum o Avatar)?", options: ["Green Screen", "Motion Capture (MoCap)", "Stop Motion"], answer: 1 },
+            "9": { category: "Game e VFX", question: "Il software di rendering e creazione giochi più usato al mondo (che si studia al Rossellini) è ________ Engine.", options: ["Unreal", "Fake", "Unlimited", "Game"], answer: 0 },
+            "10": { category: "Cyber Security", question: 'Nel monitoraggio della sicurezza operativa (SOC), qual è l\'attività principale che permette di prevenire un attacco analizzando preventivamente i sistemi alla ricerca di "falle" o bug?', options: ["Governance e Compliance", "Vulnerability Assessment", "Backup dei dati"], answer: 1 },
+            "11": { category: "Cyber Security", question: "Per proteggere una rete aziendale e bloccare il traffico non autorizzato proveniente dall'esterno (Internet), quale di questi strumenti è fondamentale installare?", options: ["Firewall", "Scanner per stampanti", "Un cavo HDMI placcato oro"], answer: 0 }
         };
 
         const KEYS = {
-            "0": "k9mP2xQv",
-            "1": "Lw7nR4tY",
-            "2": "Bj3hF8sD",
-            "3": "Za5eW1qU",
-            "4": "Xc6gV0iO"
+            "0": "dI19WusZw-",
+            "1": "hyeNw8MK5w",
+            "2": "GoEOj9ymSA",
+            "3": "iyEDE_2nqI",
+            "4": "EOq9YimV15",
+            "5": "011RUvXjzj",
+            "6": "Y7XZ6J6I5_",
+            "7": "Qe2FA9SjU_",
+            "8": "W82KdttFtx",
+            "9": "hEMFSbK_pT",
+            "10": "Ea331T88Rk",
+            "11": "9hsjMI8_8b"
         };
 
         const urlParams = new URLSearchParams(window.location.search);
@@ -223,9 +226,9 @@
             return JSON.parse(localStorage.getItem(LS_KEY)) || {};
         }
 
-        function salvaRisposta(position) {
+        function salvaRisposta(position, corretta) {
             let progress = getProgress();
-            progress[position] = true;
+            progress[position] = corretta;
             localStorage.setItem(LS_KEY, JSON.stringify(progress));
         }
 
@@ -246,11 +249,11 @@
             document.getElementById('quiz-section').style.display = 'block';
 
             const quizData = QUIZ[pos];
-            const totalQuestions = Object.keys(QUIZ).length;
             const qIndex = parseInt(pos) + 1;
 
+            document.getElementById('category-tag').textContent = quizData.category;
             document.getElementById('q-num').textContent = qIndex;
-            document.getElementById('q-total').textContent = totalQuestions;
+            document.getElementById('q-total').textContent = TOTAL_QUESTIONS;
             document.getElementById('quiz-question').textContent = quizData.question;
 
             const grid = document.getElementById('options-grid');
@@ -267,13 +270,9 @@
 
         function selezionaOpzione(index, btnElement) {
             selectedOption = index;
-
             document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
             btnElement.classList.add('selected');
-
-            const confirmBtn = document.getElementById('confirm-btn');
-            confirmBtn.classList.add('active');
-
+            document.getElementById('confirm-btn').classList.add('active');
             document.getElementById('feedback').style.display = 'none';
         }
 
@@ -285,26 +284,22 @@
             const confirmBtn = document.getElementById('confirm-btn');
 
             if (selectedOption === quizData.answer) {
-                salvaRisposta(pos);
-
+                salvaRisposta(pos, true);
                 document.querySelectorAll('.option-btn')[selectedOption].classList.add('correct');
-
                 feedback.className = 'feedback correct';
                 feedback.textContent = '✅ Corretto! Vai alla dashboard per continuare.';
                 feedback.style.display = 'block';
-
                 confirmBtn.style.display = 'none';
 
                 setTimeout(() => {
                     window.location.replace(new URL('index.html', window.location.href).href);
                 }, 2000);
             } else {
+                salvaRisposta(pos, false);
                 document.querySelectorAll('.option-btn')[selectedOption].classList.add('wrong');
-
                 feedback.className = 'feedback wrong';
                 feedback.textContent = '❌ Risposta errata. Riprova!';
                 feedback.style.display = 'block';
-
                 selectedOption = null;
                 confirmBtn.classList.remove('active');
 
@@ -321,8 +316,7 @@
             mostraErrore();
         } else {
             const posInt = parseInt(pos);
-
-            if (isNaN(posInt) || posInt < 0 || posInt >= Object.keys(QUIZ).length) {
+            if (isNaN(posInt) || posInt < 0 || posInt >= TOTAL_QUESTIONS) {
                 mostraErrore();
             } else if (domandaGiaRisolta(pos)) {
                 window.location.replace(new URL('index.html', window.location.href).href);

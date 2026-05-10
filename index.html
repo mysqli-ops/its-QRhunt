@@ -1,3 +1,4 @@
+  /* File scritto da Giosuè Nicastro con aiuto di AI */
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -22,7 +23,7 @@
 
         .header {
             text-align: center;
-            margin-bottom: 3rem;
+            margin-bottom: 2rem;
             animation: fadeInDown 0.8s ease-out;
         }
 
@@ -40,13 +41,47 @@
             font-size: 1rem;
         }
 
+        .score-board {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .score-item {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            text-align: center;
+            min-width: 120px;
+        }
+
+        .score-item .score-label {
+            font-size: 0.75rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.3rem;
+        }
+
+        .score-item .score-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+
+        .score-item.correct .score-value { color: #00ff88; }
+        .score-item.wrong .score-value { color: #ff4444; }
+        .score-item.pending .score-value { color: #888; }
+
         .progress-bar {
             width: 100%;
             max-width: 400px;
             height: 8px;
             background: rgba(255,255,255,0.1);
             border-radius: 4px;
-            margin: 1.5rem auto 0;
+            margin: 1rem auto 0;
             overflow: hidden;
         }
 
@@ -64,79 +99,83 @@
             color: #00aeef;
         }
 
+        .threshold-info {
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .threshold-info.reached {
+            color: #00ff88;
+            font-weight: bold;
+        }
+
         #grid-domande {
-            display: flex;
-            gap: 1.5rem;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin-bottom: 3rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 1rem;
+            max-width: 600px;
+            width: 100%;
+            margin-bottom: 2rem;
             animation: fadeInUp 0.8s ease-out 0.2s both;
         }
 
         .slot {
-            width: 100px;
-            height: 100px;
-            border-radius: 20px;
+            aspect-ratio: 1;
+            border-radius: 16px;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            font-size: 2.5rem;
-            font-weight: bold;
+            font-size: 1.8rem;
             position: relative;
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             cursor: default;
+            padding: 0.5rem;
         }
 
         .slot.locked {
             background: rgba(255,255,255,0.03);
             border: 2px solid rgba(255,255,255,0.1);
             color: rgba(255,255,255,0.2);
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
         }
 
-        .slot.locked::before {
-            content: "🔒";
-            font-size: 1.5rem;
-            filter: grayscale(1);
-            opacity: 0.5;
+        .slot.locked .slot-icon { font-size: 1.5rem; opacity: 0.5; }
+        .slot.locked .slot-status { display: none; }
+
+        .slot.correct {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1), rgba(0, 174, 239, 0.1));
+            border: 2px solid rgba(0, 255, 136, 0.4);
+            color: #00ff88;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.15);
         }
 
-        .slot.locked .status-icon {
-            display: none;
+        .slot.wrong {
+            background: linear-gradient(135deg, rgba(255, 68, 68, 0.1), rgba(102, 45, 145, 0.1));
+            border: 2px solid rgba(255, 68, 68, 0.4);
+            color: #ff4444;
+            box-shadow: 0 0 20px rgba(255, 68, 68, 0.15);
         }
 
-        .slot.solved {
-            background: linear-gradient(135deg, rgba(0, 174, 239, 0.15), rgba(102, 45, 145, 0.15));
-            border: 2px solid rgba(0, 174, 239, 0.5);
-            color: #00aeef;
-            text-shadow: 0 0 20px rgba(0, 174, 239, 0.6);
-            box-shadow: 
-                0 0 30px rgba(0, 174, 239, 0.2),
-                inset 0 0 20px rgba(0, 174, 239, 0.05);
-        }
-
-        .slot.solved.last-found {
+        .slot.correct.last-found,
+        .slot.wrong.last-found {
             animation: glowPulse 2s ease-in-out infinite;
         }
 
-        .slot.solved::before {
-            display: none;
+        .slot .slot-status {
+            font-size: 1.2rem;
+            font-weight: bold;
         }
 
-        .slot.solved .status-icon {
-            display: block;
-            animation: iconPop 0.6s ease-out;
+        .slot .slot-num {
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.4);
+            margin-top: 0.2rem;
         }
 
         @keyframes glowPulse {
-            0%, 100% { box-shadow: 0 0 30px rgba(0, 174, 239, 0.2), inset 0 0 20px rgba(0, 174, 239, 0.05); }
-            50% { box-shadow: 0 0 50px rgba(0, 174, 239, 0.4), inset 0 0 30px rgba(0, 174, 239, 0.1); }
-        }
-
-        @keyframes iconPop {
-            0% { transform: scale(0) rotate(-10deg); opacity: 0; }
-            60% { transform: scale(1.2) rotate(5deg); }
-            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
         }
 
         @keyframes fadeInDown {
@@ -153,11 +192,12 @@
             display: none;
             text-align: center;
             padding: 2rem;
-            background: linear-gradient(135deg, rgba(0, 174, 239, 0.1), rgba(102, 45, 145, 0.1));
-            border: 2px solid rgba(0, 174, 239, 0.3);
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.05), rgba(0, 174, 239, 0.05));
+            border: 2px solid rgba(0, 255, 136, 0.3);
             border-radius: 20px;
             max-width: 500px;
             width: 100%;
+            margin-bottom: 2rem;
         }
 
         .completion-message.show {
@@ -167,13 +207,45 @@
 
         .completion-message h2 {
             font-size: 1.8rem;
-            color: #00aeef;
+            color: #00ff88;
             margin-bottom: 0.5rem;
         }
 
-        .completion-message p {
-            color: #ccc;
-            margin-bottom: 1.5rem;
+        .completion-message .score-final {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #00ff88, #00aeef);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 1rem 0;
+        }
+
+        .completion-message .prize-text {
+            font-size: 1.1rem;
+            color: #fff;
+            margin: 1rem 0;
+            line-height: 1.5;
+        }
+
+        .completion-message .cta-button {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 14px 28px;
+            background: linear-gradient(135deg, #00ff88, #00aeef);
+            color: #000;
+            font-weight: bold;
+            font-size: 1.1rem;
+            border-radius: 12px;
+            text-decoration: none;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: none;
+        }
+
+        .completion-message .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
         }
 
         .qr-verify {
@@ -181,14 +253,7 @@
             padding: 12px;
             border-radius: 12px;
             display: inline-block;
-            margin: 0.5rem 0;
-        }
-
-        .completion-message .prize-text {
-            font-size: 1.2rem;
-            color: #00ff88;
-            margin-top: 1rem;
-            font-weight: bold;
+            margin: 1rem 0;
         }
 
         .debug-section {
@@ -214,8 +279,10 @@
 
         @media (max-width: 500px) {
             .header h1 { font-size: 1.8rem; }
-            .slot { width: 70px; height: 70px; font-size: 2rem; }
-            #grid-domande { gap: 1rem; }
+            #grid-domande { grid-template-columns: repeat(4, 1fr); gap: 0.75rem; }
+            .slot { font-size: 1.4rem; }
+            .score-board { gap: 0.75rem; }
+            .score-item { padding: 0.75rem 1rem; min-width: 100px; }
         }
     </style>
     <base target="_blank">
@@ -225,19 +292,38 @@
     <div class="header">
         <h1>🔍 ITS Hunt</h1>
         <p>Scansiona i QR code nascosti e rispondi alle domande!</p>
+
+        <div class="score-board">
+            <div class="score-item correct">
+                <div class="score-label">Corrette</div>
+                <div class="score-value" id="score-correct">0</div>
+            </div>
+            <div class="score-item wrong">
+                <div class="score-label">Errate</div>
+                <div class="score-value" id="score-wrong">0</div>
+            </div>
+            <div class="score-item pending">
+                <div class="score-label">Rimanenti</div>
+                <div class="score-value" id="score-pending">12</div>
+            </div>
+        </div>
+
         <div class="progress-bar">
             <div class="progress-fill" id="progress-fill"></div>
         </div>
-        <div class="progress-text" id="progress-text">0 / 5 domande risolte</div>
+        <div class="progress-text" id="progress-text">0 / 12 domande tentate</div>
+        <div class="threshold-info" id="threshold-info">Obiettivo: 10 risposte corrette per vincere!</div>
     </div>
 
     <div id="grid-domande"></div>
 
     <div class="completion-message" id="completion-message">
         <h2>🎉 Complimenti!</h2>
-        <p>Hai risolto tutte le domande!</p>
+        <div class="score-final" id="score-final">10/12</div>
+        <p class="prize-text" id="prize-text">Hai raggiunto l'obiettivo! Mostra questo QR allo stand di Produzione per ritirare il gadget!</p>
         <div class="qr-verify" id="qr-verify"></div>
-        <p class="prize-text">📱 Mostra questo QR al banchetto Prod per ritirare il gadget!</p>
+        <br>
+        <a href="https://mysqli-ops.github.io/its-QRhunt/verify.html" class="cta-button" id="cta-button" onclick="return openVerify(event)">🏆 Vai allo stand Produzione</a>
     </div>
 
     <div class="debug-section">
@@ -247,91 +333,159 @@
     <script>
         const LS_KEY = 'its_hunt_2026_openday';
         const SALT = "ITS2026OD";
+        const TOTAL_QUESTIONS = 12;
+        const WIN_THRESHOLD = 10;
 
         const QUIZ = {
-            "0": { question: "Anno fondazione ITS" },
-            "1": { question: "Settore tecnologico" },
-            "2": { question: "Sede principale" },
-            "3": { question: "Significato ITS" },
-            "4": { question: "Figura cinema" }
+            "0": { category: "Produzione" },
+            "1": { category: "Produzione" },
+            "2": { category: "Produzione" },
+            "3": { category: "Sound" },
+            "4": { category: "Sound" },
+            "5": { category: "Videomaker" },
+            "6": { category: "Videomaker" },
+            "7": { category: "Fotografia" },
+            "8": { category: "Game e VFX" },
+            "9": { category: "Game e VFX" },
+            "10": { category: "Cyber Security" },
+            "11": { category: "Cyber Security" }
         };
 
         function getProgress() {
             return JSON.parse(localStorage.getItem(LS_KEY)) || {};
         }
 
-        // Base64url encoding: sicuro per URL (no +, /, =)
         function toBase64Url(str) {
             return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
         }
 
         function generateToken(progress) {
-            const foundCount = Object.keys(progress).length;
+            const correctCount = Object.values(progress).filter(v => v === true).length;
             const sortedKeys = Object.keys(progress).sort().join('');
-            const payload = SALT + ':' + foundCount + ':' + sortedKeys;
+            const payload = SALT + ':' + correctCount + ':' + sortedKeys;
             return toBase64Url(payload);
         }
 
         function renderGrid() {
             const grid = document.getElementById('grid-domande');
             const progress = getProgress();
-            const foundCount = Object.keys(progress).length;
-            const totalQuestions = Object.keys(QUIZ).length;
+            const attemptedCount = Object.keys(progress).length;
+            const correctCount = Object.values(progress).filter(v => v === true).length;
+            const wrongCount = attemptedCount - correctCount;
+            const pendingCount = TOTAL_QUESTIONS - attemptedCount;
 
             grid.innerHTML = '';
 
-            for (let i = 0; i < totalQuestions; i++) {
+            for (let i = 0; i < TOTAL_QUESTIONS; i++) {
                 const slot = document.createElement('div');
-                const isSolved = progress.hasOwnProperty(i.toString());
+                const hasAnswer = progress.hasOwnProperty(i.toString());
+                const isCorrect = hasAnswer && progress[i.toString()] === true;
+                const isWrong = hasAnswer && progress[i.toString()] === false;
 
-                slot.className = `slot ${isSolved ? 'solved' : 'locked'}`;
+                let statusClass = 'locked';
+                let icon = '🔒';
+                let statusText = '';
+
+                if (isCorrect) {
+                    statusClass = 'correct';
+                    icon = '✅';
+                    statusText = 'OK';
+                } else if (isWrong) {
+                    statusClass = 'wrong';
+                    icon = '❌';
+                    statusText = 'NO';
+                }
+
+                slot.className = `slot ${statusClass}`;
                 slot.id = `slot-${i}`;
 
-                const icon = document.createElement('span');
-                icon.className = 'status-icon';
-                icon.textContent = isSolved ? '✅' : '🔒';
-                slot.appendChild(icon);
+                slot.innerHTML = `
+                    <div class="slot-icon">${icon}</div>
+                    <div class="slot-status">${statusText}</div>
+                    <div class="slot-num">${i + 1}</div>
+                `;
 
                 grid.appendChild(slot);
             }
 
-            // glowPulse solo sull'ultimo slot risolto
-            const solvedIndices = Object.keys(progress)
-                .map(Number)
-                .sort((a, b) => a - b);
-
-            if (solvedIndices.length > 0) {
-                const lastIndex = solvedIndices[solvedIndices.length - 1];
+            // glowPulse sull'ultimo slot tentato
+            const attemptedIndices = Object.keys(progress).map(Number).sort((a, b) => a - b);
+            if (attemptedIndices.length > 0) {
+                const lastIndex = attemptedIndices[attemptedIndices.length - 1];
                 const lastSlot = document.getElementById(`slot-${lastIndex}`);
                 if (lastSlot) lastSlot.classList.add('last-found');
             }
 
-            const percentage = (foundCount / totalQuestions) * 100;
+            // Aggiorna score board
+            document.getElementById('score-correct').textContent = correctCount;
+            document.getElementById('score-wrong').textContent = wrongCount;
+            document.getElementById('score-pending').textContent = pendingCount;
+
+            // Progress bar
+            const percentage = (attemptedCount / TOTAL_QUESTIONS) * 100;
             document.getElementById('progress-fill').style.width = percentage + '%';
             document.getElementById('progress-text').textContent = 
-                `${foundCount} / ${totalQuestions} domande risolte`;
+                `${attemptedCount} / ${TOTAL_QUESTIONS} domande tentate`;
 
+            // Threshold info
+            const thresholdEl = document.getElementById('threshold-info');
+            if (correctCount >= WIN_THRESHOLD) {
+                thresholdEl.textContent = `🎯 Obiettivo raggiunto! ${correctCount}/${WIN_THRESHOLD} risposte corrette!`;
+                thresholdEl.classList.add('reached');
+            } else {
+                thresholdEl.textContent = `Obiettivo: ${WIN_THRESHOLD} risposte corrette per vincere! (mancano ${WIN_THRESHOLD - correctCount})`;
+                thresholdEl.classList.remove('reached');
+            }
+
+            // Completamento
             const msg = document.getElementById('completion-message');
-            if (foundCount === totalQuestions) {
+            if (attemptedCount === TOTAL_QUESTIONS) {
+                const hasWon = correctCount >= WIN_THRESHOLD;
+
+                if (hasWon) {
+                    msg.querySelector('h2').textContent = '🎉 Complimenti, hai vinto!';
+                    document.getElementById('score-final').textContent = `${correctCount}/${TOTAL_QUESTIONS}`;
+                    document.getElementById('prize-text').textContent = 
+                        `Hai raggiunto le ${WIN_THRESHOLD} risposte corrette! Mostra questo QR allo stand di Produzione per ritirare il gadget!`;
+
+                    const qrContainer = document.getElementById('qr-verify');
+                    qrContainer.innerHTML = '';
+
+                    const token = generateToken(progress);
+                    const verifyUrl = new URL('verify.html', window.location.href).href + '?token=' + token;
+
+                    new QRCode(qrContainer, {
+                        text: verifyUrl,
+                        width: 180,
+                        height: 180,
+                        colorDark: "#000000",
+                        colorLight: "#ffffff",
+                        correctLevel: QRCode.CorrectLevel.M
+                    });
+
+                    document.getElementById('cta-button').style.display = 'inline-block';
+                } else {
+                    msg.querySelector('h2').textContent = '😬 Ci sei quasi!';
+                    document.getElementById('score-final').textContent = `${correctCount}/${TOTAL_QUESTIONS}`;
+                    document.getElementById('prize-text').textContent = 
+                        `Hai fatto ${correctCount} risposte corrette, ma ne servono ${WIN_THRESHOLD} per vincere il gadget. Riprova!`;
+                    document.getElementById('qr-verify').innerHTML = '';
+                    document.getElementById('cta-button').style.display = 'none';
+                }
+
                 msg.classList.add('show');
-
-                const qrContainer = document.getElementById('qr-verify');
-                qrContainer.innerHTML = '';
-
-                const token = generateToken(progress);
-                const verifyUrl = new URL('verify.html', window.location.href).href + '?token=' + token;
-
-                new QRCode(qrContainer, {
-                    text: verifyUrl,
-                    width: 180,
-                    height: 180,
-                    colorDark: "#000000",
-                    colorLight: "#ffffff",
-                    correctLevel: QRCode.CorrectLevel.M
-                });
             } else {
                 msg.classList.remove('show');
             }
+        }
+
+        function openVerify(e) {
+            e.preventDefault();
+            const progress = getProgress();
+            const token = generateToken(progress);
+            const base = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+            window.open(base + 'verify.html?token=' + token, '_blank');
+            return false;
         }
 
         function resetProgress() {

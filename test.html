@@ -1,3 +1,4 @@
+  /* File scritto da Giosuè Nicastro con aiuto di AI */
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -134,29 +135,32 @@
         }
 
         .progress-display {
-            display: flex;
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
             gap: 0.5rem;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 1rem;
+            max-width: 400px;
+            margin: 1rem auto 0;
         }
         .progress-slot {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
+            aspect-ratio: 1;
+            border-radius: 10px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             border: 2px solid rgba(255,255,255,0.1);
             background: rgba(255,255,255,0.03);
             color: rgba(255,255,255,0.2);
         }
-        .progress-slot.solved {
-            border-color: rgba(0, 174, 239, 0.5);
-            background: rgba(0, 174, 239, 0.1);
-            color: #00aeef;
-            box-shadow: 0 0 15px rgba(0, 174, 239, 0.2);
+        .progress-slot.correct {
+            border-color: rgba(0, 255, 136, 0.5);
+            background: rgba(0, 255, 136, 0.1);
+            color: #00ff88;
+        }
+        .progress-slot.wrong {
+            border-color: rgba(255, 68, 68, 0.5);
+            background: rgba(255, 68, 68, 0.1);
+            color: #ff4444;
         }
 
         .info-box {
@@ -180,6 +184,7 @@
         @media (max-width: 500px) {
             h1 { font-size: 1.5rem; }
             .qr-grid { grid-template-columns: repeat(2, 1fr); }
+            .progress-display { grid-template-columns: repeat(4, 1fr); }
         }
     </style>
     <base target="_blank">
@@ -199,7 +204,7 @@
         </div>
 
         <div class="section">
-            <h2>📱 QR Code Generati (5 domande)</h2>
+            <h2>📱 QR Code Generati (12 domande)</h2>
             <div class="qr-grid" id="qr-grid"></div>
         </div>
 
@@ -211,7 +216,8 @@
         <div class="section">
             <h2>⚡ Azioni Rapide</h2>
             <div class="sim-buttons">
-                <button class="sim-btn all" onclick="simulateAll()">✨ Risolvi TUTTO</button>
+                <button class="sim-btn all" onclick="simulateAll()">✨ Risolvi TUTTO (corretto)</button>
+                <button class="sim-btn" onclick="simulateMixed()">🎲 Simula 10 corrette / 2 errate</button>
                 <button class="sim-btn reset" onclick="resetProgress()">🗑️ Reset Progresso</button>
                 <a href="index.html" class="sim-btn" target="_blank">📊 Apri Dashboard</a>
                 <button class="sim-btn" onclick="openVerify()">🔍 Apri Verify (con token)</button>
@@ -227,21 +233,37 @@
     <script>
         const LS_KEY = 'its_hunt_2026_openday';
         const SALT = "ITS2026OD";
+        const TOTAL_QUESTIONS = 12;
+        const WIN_THRESHOLD = 10;
 
         const QUIZ = {
-            "0": { question: "Anno fondazione ITS" },
-            "1": { question: "Settore tecnologico" },
-            "2": { question: "Sede principale" },
-            "3": { question: "Significato ITS" },
-            "4": { question: "Figura cinema" }
+            "0": { category: "Produzione", question: "Documenti scena" },
+            "1": { category: "Produzione", question: "Figura produzione" },
+            "2": { category: "Produzione", question: "Acronimo ODG" },
+            "3": { category: "Sound", question: "Ennio Morricone" },
+            "4": { category: "Sound", question: "Foley Artist" },
+            "5": { category: "Videomaker", question: "Regola dei Terzi" },
+            "6": { category: "Videomaker", question: "Panoramica" },
+            "7": { category: "Fotografia", question: "Temperatura colore" },
+            "8": { category: "Game e VFX", question: "Motion Capture" },
+            "9": { category: "Game e VFX", question: "Unreal Engine" },
+            "10": { category: "Cyber Security", question: "Vulnerability Assessment" },
+            "11": { category: "Cyber Security", question: "Firewall" }
         };
 
         const KEYS = {
-            "0": "k9mP2xQv",
-            "1": "Lw7nR4tY",
-            "2": "Bj3hF8sD",
-            "3": "Za5eW1qU",
-            "4": "Xc6gV0iO"
+            "0": "dI19WusZw-",
+            "1": "hyeNw8MK5w",
+            "2": "GoEOj9ymSA",
+            "3": "iyEDE_2nqI",
+            "4": "EOq9YimV15",
+            "5": "011RUvXjzj",
+            "6": "Y7XZ6J6I5_",
+            "7": "Qe2FA9SjU_",
+            "8": "W82KdttFtx",
+            "9": "hEMFSbK_pT",
+            "10": "Ea331T88Rk",
+            "11": "9hsjMI8_8b"
         };
 
         function toBase64Url(str) {
@@ -266,7 +288,7 @@
                 const card = document.createElement('div');
                 card.className = 'qr-card';
                 card.innerHTML = `
-                    <div class="q-num">Domanda ${parseInt(index)+1}</div>
+                    <div class="q-num">${quizData.category} ${parseInt(index)+1}</div>
                     <div class="q-preview">${quizData.question}</div>
                     <div class="qrcode" id="qr-${index}"></div>
                     <div style="font-size:0.65rem; color:#555; word-break:break-all; margin-top:0.5rem;">${url}</div>
@@ -296,7 +318,7 @@
                 btn.className = 'sim-btn';
                 btn.href = url;
                 btn.target = '_blank';
-                btn.innerHTML = `📷 Scan QR ${parseInt(index)+1}`;
+                btn.innerHTML = `📷 QR ${parseInt(index)+1}`;
                 container.appendChild(btn);
             });
         }
@@ -306,23 +328,50 @@
             const display = document.getElementById('progress-display');
             display.innerHTML = '';
 
-            Object.keys(QUIZ).forEach((index) => {
+            for (let i = 0; i < TOTAL_QUESTIONS; i++) {
                 const slot = document.createElement('div');
-                const isSolved = progress.hasOwnProperty(index);
-                slot.className = `progress-slot ${isSolved ? 'solved' : ''}`;
-                slot.textContent = isSolved ? '✅' : '🔒';
+                const hasAnswer = progress.hasOwnProperty(i.toString());
+                const isCorrect = hasAnswer && progress[i.toString()] === true;
+                const isWrong = hasAnswer && progress[i.toString()] === false;
+
+                let className = 'progress-slot';
+                let text = '🔒';
+
+                if (isCorrect) {
+                    className += ' correct';
+                    text = '✅';
+                } else if (isWrong) {
+                    className += ' wrong';
+                    text = '❌';
+                }
+
+                slot.className = className;
+                slot.textContent = text;
                 display.appendChild(slot);
-            });
+            }
         }
 
         function simulateAll() {
-            let progress = JSON.parse(localStorage.getItem(LS_KEY)) || {};
-            Object.keys(QUIZ).forEach((index) => {
-                progress[index] = true;
-            });
+            let progress = {};
+            for (let i = 0; i < TOTAL_QUESTIONS; i++) {
+                progress[i] = true;
+            }
             localStorage.setItem(LS_KEY, JSON.stringify(progress));
             updateProgressDisplay();
-            alert('✅ Tutte le domande risolte! Apri index.html per vedere il QR di verifica.');
+            alert('✅ Tutte le domande risolte correttamente! Apri index.html per vedere il QR di verifica.');
+        }
+
+        function simulateMixed() {
+            let progress = {};
+            // 10 corrette, 2 errate
+            for (let i = 0; i < 10; i++) {
+                progress[i] = true;
+            }
+            progress[10] = false;
+            progress[11] = false;
+            localStorage.setItem(LS_KEY, JSON.stringify(progress));
+            updateProgressDisplay();
+            alert('🎲 Simulazione: 10 corrette, 2 errate. Apri index.html per testare la soglia di vittoria.');
         }
 
         function resetProgress() {
@@ -334,9 +383,9 @@
 
         function openVerify() {
             const progress = JSON.parse(localStorage.getItem(LS_KEY)) || {};
-            const foundCount = Object.keys(progress).length;
+            const correctCount = Object.values(progress).filter(v => v === true).length;
             const sortedKeys = Object.keys(progress).sort().join('');
-            const payload = SALT + ':' + foundCount + ':' + sortedKeys;
+            const payload = SALT + ':' + correctCount + ':' + sortedKeys;
             const token = toBase64Url(payload);
 
             const base = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
