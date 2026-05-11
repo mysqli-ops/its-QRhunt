@@ -176,6 +176,7 @@
     <script>
         const DEBUG = false;
         const LS_KEY = 'its_hunt_2026_openday';
+        const DEVICE_ID_KEY = 'its_hunt_device_id';
         const TOTAL_QUESTIONS = 12;
 
         const QUIZ = {
@@ -234,6 +235,20 @@
             const entry = progress[position];
             // Bloccato se già corretto O se ha esaurito i tentativi (2)
             return entry.correct === true || entry.attempts >= 2;
+        }
+
+        function getDeviceId() {
+            let id = localStorage.getItem(DEVICE_ID_KEY);
+            if (!id) {
+                const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+                let result = '';
+                for (let i = 0; i < 5; i++) {
+                    result += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                id = result;
+                localStorage.setItem(DEVICE_ID_KEY, id);
+            }
+            return id;
         }
 
         function mostraErrore() {
@@ -325,6 +340,9 @@
                 }
             }
         }
+
+        // Genera device ID al primo scan QR se non esiste
+        getDeviceId();
 
         if (pos === null || key === null || !validaKey(pos, key)) {
             mostraErrore();

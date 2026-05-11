@@ -110,9 +110,10 @@
                 const decoded = fromBase64Url(t);
                 const parts = decoded.split(':');
 
-                if (parts.length !== 3) return { valid: false, reason: 'Formato non valido' };
+                // Nuovo formato: SALT:count:sortedKeys:timestamp:deviceId (5 parti)
+                if (parts.length !== 5) return { valid: false, reason: 'Formato token non valido' };
 
-                const [salt, count] = parts;
+                const [salt, count, sortedKeys, timestamp, deviceId] = parts;
 
                 if (salt !== SALT) return { valid: false, reason: 'Firma non valida' };
 
@@ -124,7 +125,7 @@
                     };
                 }
 
-                return { valid: true, count: correctCount };
+                return { valid: true, count: correctCount, deviceId: deviceId };
             } catch (e) {
                 return { valid: false, reason: 'Errore decodifica' };
             }
