@@ -227,27 +227,7 @@
             line-height: 1.5;
         }
 
-        .completion-message .cta-button {
-            display: inline-block;
-            margin-top: 1rem;
-            padding: 14px 28px;
-            background: linear-gradient(135deg, #00ff88, #00aeef);
-            color: #000;
-            font-weight: bold;
-            font-size: 1.1rem;
-            border-radius: 12px;
-            text-decoration: none;
-            transition: all 0.3s;
-            cursor: pointer;
-            border: none;
-        }
-
-        .completion-message .cta-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
-        }
-
-        .qr-verify {
+                .qr-verify {
             background: #fff;
             padding: 12px;
             border-radius: 12px;
@@ -285,6 +265,7 @@
         }
     </style>
     <base target="_blank">
+<base target="_blank">
 <base target="_blank">
 <base target="_blank">
 </head>
@@ -457,7 +438,7 @@
                     document.getElementById('prize-text').textContent = 
                         `Hai raggiunto le ${WIN_THRESHOLD} risposte corrette! Mostra questo QR allo stand di Produzione per ritirare il gadget!`;
 
-                    const qrContainer = document.getElementById('qr-verify');
+                                        const qrContainer = document.getElementById('qr-verify');
                     qrContainer.innerHTML = '';
 
                     const token = generateToken(progress);
@@ -471,30 +452,17 @@
                         colorLight: "#ffffff",
                         correctLevel: QRCode.CorrectLevel.M
                     });
-
-                    document.getElementById('cta-button').style.display = 'inline-block';
                 } else {
                     msg.querySelector('h2').textContent = '😬 Ci sei quasi!';
                     document.getElementById('score-final').textContent = `${correctCount}/${TOTAL_QUESTIONS}`;
                     document.getElementById('prize-text').textContent = 
                         `Hai fatto ${correctCount} risposte corrette, ma ne servono ${WIN_THRESHOLD} per vincere il gadget. Riprova!`;
-                    document.getElementById('qr-verify').innerHTML = '';
-                    document.getElementById('cta-button').style.display = 'none';
                 }
 
                 msg.classList.add('show');
             } else {
                 msg.classList.remove('show');
             }
-        }
-
-        function openVerify(e) {
-            e.preventDefault();
-            const progress = getProgress();
-            const token = generateToken(progress);
-            const base = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
-            window.open(base + 'verify.html?token=' + token, '_blank');
-            return false;
         }
 
         function resetProgress() {
