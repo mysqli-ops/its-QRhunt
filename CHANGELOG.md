@@ -148,7 +148,7 @@ Rimosso
     encodeURIComponent() nel passaggio token → URL (non più necessario con base64url)
 
 
-  v3.0.0 — 12 Domande, Meccanica 10/12, Categorie ITS (2026-05-09) — BREAKING CHANGE
+v3.0.0 — 12 Domande, Meccanica 10/12, Categorie ITS (2026-05-09) — BREAKING CHANGE
 Il sistema è stato espanso da 5 a 12 domande con meccanica soglia 10/12 per vincere. Il localStorage precedente non è compatibile (formato dati cambiato: da progress[pos] = true a progress[pos] = true/false per tracciare anche le risposte errate).
 Aggiunto
 
@@ -196,3 +196,22 @@ Rimosso
 
     5 domande originali generiche sostituite da 12 domande specifiche ITS
     Sistema "tutte le domande devono essere corrette" sostituito da "almeno 10/12"
+
+v3.0.1 — Fix Bug Critico Retry & Verifica Soglia (2026-05-11)
+Fixato
+
+[CRITICAL] Retry bloccato dopo errore via re-scan (collect.html): domandaGiaRisolta() controllava hasOwnProperty(position) — un errore salvato (false) bloccava il re-scan redirigendo alla dashboard. Fix: la funzione ora controlla progress[position] === true; solo una risposta corretta blocca il retry
+[CRITICAL] Verifica keys incompatibile con meccanica soglia (verify.html): il check keys !== EXPECTED_KEYS richiedeva che tutte e 12 le domande fossero state tentate, ma con soglia 10/12 non è un requisito. Fix: rimosso il check keys; la verifica si basa esclusivamente su correctCount >= WIN_THRESHOLD
+EXPECTED_COUNT ancora stringa (verify.html): "10" → WIN_THRESHOLD = 10 come number; confronto ora usa parseInt(count) < WIN_THRESHOLD senza ambiguità di tipo
+Persist post-reset su mobile: location.reload() in resetProgress() non svuota la BFCache su alcuni browser mobile — la pagina veniva ripristinata dallo snapshot con il vecchio localStorage. Fix: redirect a index.html?t=<timestamp> invece di reload(), che forza un fetch fresco e invalida la BFCache
+Doppio <base target="_blank"> rimosso da collect.html e test.html
+
+Modificato
+
+resetProgress() in index.html: location.reload() → window.location.replace('index.html?t=' + Date.now())
+collect.html: aggiunto guard su salvaRisposta(pos, false) — non sovrascrive un eventuale true già salvato
+
+Rimosso
+
+Check keys !== EXPECTED_KEYS da verify.html (logica non compatibile con sistema a soglia)
+WIN_THRESHOLD inutilizzato da collect.html

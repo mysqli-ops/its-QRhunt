@@ -286,6 +286,7 @@
     </style>
     <base target="_blank">
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
     <div class="header">
@@ -325,7 +326,7 @@
         <a href="https://mysqli-ops.github.io/its-QRhunt/verify.html" class="cta-button" id="cta-button" onclick="return openVerify(event)">🏆 Vai allo stand Produzione</a>
     </div>
 
-    <div class="debug-section">
+    <div class="debug-section" id="debug-section" style="display:none;">
         <button onclick="resetProgress()">🗑️ Reset Progresso (Debug)</button>
     </div>
 
@@ -351,7 +352,17 @@
         };
 
         function getProgress() {
-            return JSON.parse(localStorage.getItem(LS_KEY)) || {};
+            const raw = JSON.parse(localStorage.getItem(LS_KEY)) || {};
+            // Migra vecchio formato booleano al nuovo formato oggetto
+            const migrated = {};
+            for (const key in raw) {
+                if (typeof raw[key] === 'boolean') {
+                    migrated[key] = { correct: raw[key], attempts: raw[key] ? 1 : 1 };
+                } else {
+                    migrated[key] = raw[key];
+                }
+            }
+            return migrated;
         }
 
         function toBase64Url(str) {
@@ -359,7 +370,7 @@
         }
 
         function generateToken(progress) {
-            const correctCount = Object.values(progress).filter(v => v === true).length;
+            const correctCount = Object.values(progress).filter(v => v && v.correct === true).length;
             const sortedKeys = Object.keys(progress).sort().join('');
             const payload = SALT + ':' + correctCount + ':' + sortedKeys;
             return toBase64Url(payload);
@@ -369,8 +380,8 @@
             const grid = document.getElementById('grid-domande');
             const progress = getProgress();
             const attemptedCount = Object.keys(progress).length;
-            const correctCount = Object.values(progress).filter(v => v === true).length;
-            const wrongCount = attemptedCount - correctCount;
+            const correctCount = Object.values(progress).filter(v => v && v.correct === true).length;
+            const wrongCount = Object.values(progress).filter(v => v && v.correct === false).length;
             const pendingCount = TOTAL_QUESTIONS - attemptedCount;
 
             grid.innerHTML = '';
@@ -378,8 +389,9 @@
             for (let i = 0; i < TOTAL_QUESTIONS; i++) {
                 const slot = document.createElement('div');
                 const hasAnswer = progress.hasOwnProperty(i.toString());
-                const isCorrect = hasAnswer && progress[i.toString()] === true;
-                const isWrong = hasAnswer && progress[i.toString()] === false;
+                const entry = hasAnswer ? progress[i.toString()] : null;
+                const isCorrect = hasAnswer && entry && entry.correct === true;
+                const isWrong = hasAnswer && entry && entry.correct === false;
 
                 let statusClass = 'locked';
                 let icon = '🔒';
@@ -490,7 +502,10 @@
         function resetProgress() {
             if (confirm('Sei sicuro di voler cancellare tutto il progresso?')) {
                 localStorage.removeItem(LS_KEY);
-                location.reload();
+                // FIX: location.reload() ripristina la BFCache su alcuni browser mobile
+                // mostrando il vecchio stato anche dopo il reset del localStorage.
+                // Il timestamp forza un fetch fresco e invalida lo snapshot in memoria.
+                window.location.replace('index.html?t=' + Date.now());
             }
         }
 
@@ -499,6 +514,12 @@
         });
 
         setInterval(renderGrid, 1000);
+
+        // Mostra sezione debug solo con parametro ?debug=1
+        const debugParams = new URLSearchParams(window.location.search);
+        if (debugParams.get('debug') === '1') {
+            document.getElementById('debug-section').style.display = 'block';
+        }
 
         renderGrid();
     </script>

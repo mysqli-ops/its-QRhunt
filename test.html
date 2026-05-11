@@ -1,4 +1,3 @@
-  /* File scritto da Giosuè Nicastro con aiuto di AI */
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -189,6 +188,7 @@
     </style>
     <base target="_blank">
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
     <div class="container">
@@ -324,15 +324,26 @@
         }
 
         function updateProgressDisplay() {
-            const progress = JSON.parse(localStorage.getItem(LS_KEY)) || {};
+            const raw = JSON.parse(localStorage.getItem(LS_KEY)) || {};
+            // Migra vecchio formato
+            const progress = {};
+            for (const key in raw) {
+                if (typeof raw[key] === 'boolean') {
+                    progress[key] = { correct: raw[key], attempts: raw[key] ? 1 : 1 };
+                } else {
+                    progress[key] = raw[key];
+                }
+            }
             const display = document.getElementById('progress-display');
             display.innerHTML = '';
 
             for (let i = 0; i < TOTAL_QUESTIONS; i++) {
                 const slot = document.createElement('div');
                 const hasAnswer = progress.hasOwnProperty(i.toString());
-                const isCorrect = hasAnswer && progress[i.toString()] === true;
-                const isWrong = hasAnswer && progress[i.toString()] === false;
+                const entry = hasAnswer ? progress[i.toString()] : null;
+                const isCorrect = hasAnswer && entry && entry.correct === true;
+                const isWrong = hasAnswer && entry && entry.correct === false;
+                const isBlocked = hasAnswer && entry && entry.correct === false && entry.attempts >= 2;
 
                 let className = 'progress-slot';
                 let text = '🔒';
@@ -340,6 +351,9 @@
                 if (isCorrect) {
                     className += ' correct';
                     text = '✅';
+                } else if (isBlocked) {
+                    className += ' wrong';
+                    text = '🚫';
                 } else if (isWrong) {
                     className += ' wrong';
                     text = '❌';
@@ -354,7 +368,7 @@
         function simulateAll() {
             let progress = {};
             for (let i = 0; i < TOTAL_QUESTIONS; i++) {
-                progress[i] = true;
+                progress[i] = { correct: true, attempts: 1 };
             }
             localStorage.setItem(LS_KEY, JSON.stringify(progress));
             updateProgressDisplay();
@@ -363,15 +377,15 @@
 
         function simulateMixed() {
             let progress = {};
-            // 10 corrette, 2 errate
+            // 10 corrette, 2 errate (con 2 tentativi ciascuna per simulare blocco)
             for (let i = 0; i < 10; i++) {
-                progress[i] = true;
+                progress[i] = { correct: true, attempts: 1 };
             }
-            progress[10] = false;
-            progress[11] = false;
+            progress[10] = { correct: false, attempts: 2 };
+            progress[11] = { correct: false, attempts: 2 };
             localStorage.setItem(LS_KEY, JSON.stringify(progress));
             updateProgressDisplay();
-            alert('🎲 Simulazione: 10 corrette, 2 errate. Apri index.html per testare la soglia di vittoria.');
+            alert('🎲 Simulazione: 10 corrette, 2 errate (bloccate). Apri index.html per testare la soglia di vittoria.');
         }
 
         function resetProgress() {
@@ -382,8 +396,17 @@
         }
 
         function openVerify() {
-            const progress = JSON.parse(localStorage.getItem(LS_KEY)) || {};
-            const correctCount = Object.values(progress).filter(v => v === true).length;
+            const raw = JSON.parse(localStorage.getItem(LS_KEY)) || {};
+            // Migra vecchio formato
+            const progress = {};
+            for (const key in raw) {
+                if (typeof raw[key] === 'boolean') {
+                    progress[key] = { correct: raw[key], attempts: raw[key] ? 1 : 1 };
+                } else {
+                    progress[key] = raw[key];
+                }
+            }
+            const correctCount = Object.values(progress).filter(v => v && v.correct === true).length;
             const sortedKeys = Object.keys(progress).sort().join('');
             const payload = SALT + ':' + correctCount + ':' + sortedKeys;
             const token = toBase64Url(payload);

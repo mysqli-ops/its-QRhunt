@@ -89,7 +89,6 @@
             cursor: pointer;
             transition: all 0.3s;
             text-align: left;
-            position: relative;
         }
         .option-btn:hover {
             border-color: rgba(0, 174, 239, 0.5);
@@ -150,7 +149,6 @@
 
         #error-state { display: none; }
     </style>
-    <base target="_blank">
 <base target="_blank">
 </head>
 <body>
@@ -179,7 +177,6 @@
         const DEBUG = false;
         const LS_KEY = 'its_hunt_2026_openday';
         const TOTAL_QUESTIONS = 12;
-        const WIN_THRESHOLD = 10;
 
         const QUIZ = {
             "0": { category: "Produzione", question: "Quale dei seguenti documenti NON serve a capire quando e/o dove si gira una scena?", options: ["Contratto attori", "Piano riprese", "Lista catering", "Sceneggiatura"], answer: 2 },
@@ -225,14 +222,18 @@
             return JSON.parse(localStorage.getItem(LS_KEY)) || {};
         }
 
-        function salvaRisposta(position, corretta) {
+        function salvaRisposta(position, corretta, tentativi) {
             let progress = getProgress();
-            progress[position] = corretta;
+            progress[position] = { correct: corretta, attempts: tentativi };
             localStorage.setItem(LS_KEY, JSON.stringify(progress));
         }
 
         function domandaGiaRisolta(position) {
-            return getProgress().hasOwnProperty(position);
+            const progress = getProgress();
+            if (!progress.hasOwnProperty(position)) return false;
+            const entry = progress[position];
+            // Bloccato se già corretto O se ha esaurito i tentativi (2)
+            return entry.correct === true || entry.attempts >= 2;
         }
 
         function mostraErrore() {
@@ -281,9 +282,11 @@
             const quizData = QUIZ[pos];
             const feedback = document.getElementById('feedback');
             const confirmBtn = document.getElementById('confirm-btn');
+            const progress = getProgress();
+            const currentAttempts = progress[pos] ? (progress[pos].attempts || 0) : 0;
 
             if (selectedOption === quizData.answer) {
-                salvaRisposta(pos, true);
+                salvaRisposta(pos, true, currentAttempts + 1);
                 document.querySelectorAll('.option-btn')[selectedOption].classList.add('correct');
                 feedback.className = 'feedback correct';
                 feedback.textContent = '✅ Corretto! Vai alla dashboard per continuare.';
@@ -294,20 +297,32 @@
                     window.location.replace(new URL('index.html', window.location.href).href);
                 }, 2000);
             } else {
-                salvaRisposta(pos, false);
+                const newAttempts = currentAttempts + 1;
+                salvaRisposta(pos, false, newAttempts);
                 document.querySelectorAll('.option-btn')[selectedOption].classList.add('wrong');
-                feedback.className = 'feedback wrong';
-                feedback.textContent = '❌ Risposta errata. Riprova!';
-                feedback.style.display = 'block';
-                selectedOption = null;
-                confirmBtn.classList.remove('active');
 
-                setTimeout(() => {
-                    document.querySelectorAll('.option-btn').forEach(b => {
-                        b.classList.remove('selected', 'wrong');
-                    });
-                    feedback.style.display = 'none';
-                }, 1500);
+                if (newAttempts >= 2) {
+                    feedback.className = 'feedback wrong';
+                    feedback.textContent = '❌ Risposta errata. Tentativi esauriti! Questa domanda è bloccata.';
+                    feedback.style.display = 'block';
+                    confirmBtn.style.display = 'none';
+                    setTimeout(() => {
+                        window.location.replace(new URL('index.html', window.location.href).href);
+                    }, 2500);
+                } else {
+                    feedback.className = 'feedback wrong';
+                    feedback.textContent = '❌ Risposta errata. Ti rimane 1 tentativo!';
+                    feedback.style.display = 'block';
+                    selectedOption = null;
+                    confirmBtn.classList.remove('active');
+
+                    setTimeout(() => {
+                        document.querySelectorAll('.option-btn').forEach(b => {
+                            b.classList.remove('selected', 'wrong');
+                        });
+                        feedback.style.display = 'none';
+                    }, 1500);
+                }
             }
         }
 
@@ -318,7 +333,19 @@
             if (isNaN(posInt) || posInt < 0 || posInt >= TOTAL_QUESTIONS) {
                 mostraErrore();
             } else if (domandaGiaRisolta(pos)) {
-                window.location.replace(new URL('index.html', window.location.href).href);
+                // Se bloccato per tentativi esauriti, mostra messaggio prima di redirect
+                const progress = getProgress();
+                const entry = progress[pos];
+                if (entry && entry.attempts >= 2 && entry.correct !== true) {
+                    document.getElementById('loading-state').style.display = 'none';
+                    document.getElementById('error-state').innerHTML = '<p class="message error">❌ Tentativi esauriti per questa domanda.</p>';
+                    document.getElementById('error-state').style.display = 'block';
+                    setTimeout(() => {
+                        window.location.replace(new URL('index.html', window.location.href).href);
+                    }, 2000);
+                } else {
+                    window.location.replace(new URL('index.html', window.location.href).href);
+                }
             } else {
                 setTimeout(mostraDomanda, 600);
             }
