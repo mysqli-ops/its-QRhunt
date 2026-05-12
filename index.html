@@ -217,22 +217,21 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            margin: 1rem 0;
+            margin: 0.5rem 0;
         }
 
         .completion-message .prize-text {
-            font-size: 1.1rem;
-            color: #fff;
-            margin: 1rem 0;
-            line-height: 1.5;
+            color: #ccc;
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
         }
 
-                .qr-verify {
+        .qr-verify {
             background: #fff;
             padding: 12px;
             border-radius: 12px;
             display: inline-block;
-            margin: 1rem 0;
+            margin: 0.5rem 0;
         }
 
         .debug-section {
@@ -258,16 +257,9 @@
 
         @media (max-width: 500px) {
             .header h1 { font-size: 1.8rem; }
-            #grid-domande { grid-template-columns: repeat(4, 1fr); gap: 0.75rem; }
-            .slot { font-size: 1.4rem; }
-            .score-board { gap: 0.75rem; }
-            .score-item { padding: 0.75rem 1rem; min-width: 100px; }
+            #grid-domande { gap: 0.75rem; }
         }
     </style>
-    <base target="_blank">
-<base target="_blank">
-<base target="_blank">
-<base target="_blank">
 </head>
 <body>
     <div class="header">
@@ -333,11 +325,10 @@
 
         function getProgress() {
             const raw = JSON.parse(localStorage.getItem(LS_KEY)) || {};
-            // Migra vecchio formato booleano al nuovo formato oggetto
             const migrated = {};
             for (const key in raw) {
                 if (typeof raw[key] === 'boolean') {
-                    migrated[key] = { correct: raw[key], attempts: raw[key] ? 1 : 1 };
+                    migrated[key] = { correct: raw[key], attempts: 1 };
                 } else {
                     migrated[key] = raw[key];
                 }
@@ -363,12 +354,13 @@
             return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
         }
 
+        // FIX v3.3.1: rimosso timestamp — il token è ora stabile per lo stesso dispositivo.
+        // Payload: SALT:correctCount:sortedKeys:deviceId (4 parti)
         function generateToken(progress) {
             const correctCount = Object.values(progress).filter(v => v && v.correct === true).length;
             const sortedKeys = Object.keys(progress).sort().join('');
-            const timestamp = Date.now();
             const deviceId = getDeviceId();
-            const payload = SALT + ':' + correctCount + ':' + sortedKeys + ':' + timestamp + ':' + deviceId;
+            const payload = SALT + ':' + correctCount + ':' + sortedKeys + ':' + deviceId;
             return toBase64Url(payload);
         }
 
@@ -405,17 +397,15 @@
 
                 slot.className = `slot ${statusClass}`;
                 slot.id = `slot-${i}`;
-
                 slot.innerHTML = `
                     <div class="slot-icon">${icon}</div>
                     <div class="slot-status">${statusText}</div>
                     <div class="slot-num">${i + 1}</div>
                 `;
-
                 grid.appendChild(slot);
             }
 
-            // glowPulse sull'ultimo slot tentato
+            // glowPulse solo sull'ultimo slot tentato
             const attemptedIndices = Object.keys(progress).map(Number).sort((a, b) => a - b);
             if (attemptedIndices.length > 0) {
                 const lastIndex = attemptedIndices[attemptedIndices.length - 1];
@@ -423,28 +413,24 @@
                 if (lastSlot) lastSlot.classList.add('last-found');
             }
 
-            // Aggiorna score board
             document.getElementById('score-correct').textContent = correctCount;
             document.getElementById('score-wrong').textContent = wrongCount;
             document.getElementById('score-pending').textContent = pendingCount;
 
-            // Progress bar
             const percentage = (attemptedCount / TOTAL_QUESTIONS) * 100;
             document.getElementById('progress-fill').style.width = percentage + '%';
-            document.getElementById('progress-text').textContent = 
+            document.getElementById('progress-text').textContent =
                 `${attemptedCount} / ${TOTAL_QUESTIONS} domande tentate`;
 
-            // Threshold info
             const thresholdEl = document.getElementById('threshold-info');
             if (correctCount >= WIN_THRESHOLD) {
                 thresholdEl.textContent = `🎯 Obiettivo raggiunto! ${correctCount}/${WIN_THRESHOLD} risposte corrette!`;
                 thresholdEl.classList.add('reached');
             } else {
-                thresholdEl.textContent = `Obiettivo: ${WIN_THRESHOLD} risposte corrette per vincere! (mancano ${WIN_THRESHOLD - correctCount})`;
+                thresholdEl.textContent = `Obiettivo: ${WIN_THRESHOLD} risposte corrette per vincere!`;
                 thresholdEl.classList.remove('reached');
             }
 
-            // Completamento
             const msg = document.getElementById('completion-message');
             if (attemptedCount === TOTAL_QUESTIONS) {
                 const hasWon = correctCount >= WIN_THRESHOLD;
@@ -452,28 +438,28 @@
                 if (hasWon) {
                     msg.querySelector('h2').textContent = '🎉 Complimenti, hai vinto!';
                     document.getElementById('score-final').textContent = `${correctCount}/${TOTAL_QUESTIONS}`;
-                    document.getElementById('prize-text').textContent = 
+                    document.getElementById('prize-text').textContent =
                         `Hai raggiunto le ${WIN_THRESHOLD} risposte corrette! Mostra questo QR allo stand di Produzione per ritirare il gadget!`;
 
-                                        const qrContainer = document.getElementById('qr-verify');
-                    qrContainer.innerHTML = '';
-
-                    const token = generateToken(progress);
-                    const verifyUrl = new URL('verify.html', window.location.href).href + '?token=' + token;
-
-                    new QRCode(qrContainer, {
-                        text: verifyUrl,
-                        width: 180,
-                        height: 180,
-                        colorDark: "#000000",
-                        colorLight: "#ffffff",
-                        correctLevel: QRCode.CorrectLevel.M
-                    });
+                    const qrContainer = document.getElementById('qr-verify');
+                    if (!qrContainer.hasChildNodes()) {
+                        const token = generateToken(progress);
+                        const verifyUrl = new URL('verify.html', window.location.href).href + '?token=' + token;
+                        new QRCode(qrContainer, {
+                            text: verifyUrl,
+                            width: 180,
+                            height: 180,
+                            colorDark: "#000000",
+                            colorLight: "#ffffff",
+                            correctLevel: QRCode.CorrectLevel.M
+                        });
+                    }
                 } else {
                     msg.querySelector('h2').textContent = '😬 Ci sei quasi!';
                     document.getElementById('score-final').textContent = `${correctCount}/${TOTAL_QUESTIONS}`;
-                    document.getElementById('prize-text').textContent = 
+                    document.getElementById('prize-text').textContent =
                         `Hai fatto ${correctCount} risposte corrette, ma ne servono ${WIN_THRESHOLD} per vincere il gadget. Riprova!`;
+                    document.getElementById('qr-verify').innerHTML = '';
                 }
 
                 msg.classList.add('show');
@@ -485,9 +471,6 @@
         function resetProgress() {
             if (confirm('Sei sicuro di voler cancellare tutto il progresso?')) {
                 localStorage.removeItem(LS_KEY);
-                // FIX: location.reload() ripristina la BFCache su alcuni browser mobile
-                // mostrando il vecchio stato anche dopo il reset del localStorage.
-                // Il timestamp forza un fetch fresco e invalida lo snapshot in memoria.
                 window.location.replace('index.html?t=' + Date.now());
             }
         }
@@ -498,7 +481,6 @@
 
         setInterval(renderGrid, 1000);
 
-        // Mostra sezione debug solo con parametro ?debug=1
         const debugParams = new URLSearchParams(window.location.search);
         if (debugParams.get('debug') === '1') {
             document.getElementById('debug-section').style.display = 'block';

@@ -18,27 +18,12 @@
             transition: background 0.5s;
         }
 
-        body.valid {
-            background: linear-gradient(135deg, #0a2a1a 0%, #0d3d1f 50%, #0a2a1a 100%);
-        }
+        body.valid   { background: linear-gradient(135deg, #0a2a1a 0%, #0d3d1f 50%, #0a2a1a 100%); }
+        body.invalid { background: linear-gradient(135deg, #2a0a0a 0%, #3d0d0d 50%, #2a0a0a 100%); }
+        body.used    { background: linear-gradient(135deg, #2a1a00 0%, #3d2a0d 50%, #2a1a00 100%); }
+        body.loading { background: #0a0a0a; }
 
-        body.invalid {
-            background: linear-gradient(135deg, #2a0a0a 0%, #3d0d0d 50%, #2a0a0a 100%);
-        }
-
-        body.used {
-            background: linear-gradient(135deg, #2a1a00 0%, #3d2a0d 50%, #2a1a00 100%);
-        }
-
-        body.loading {
-            background: #0a0a0a;
-        }
-
-        .container {
-            padding: 2rem;
-            max-width: 500px;
-        }
-
+        .container { padding: 2rem; max-width: 500px; }
         .icon { font-size: 5rem; margin-bottom: 1rem; }
         h1 { font-size: 2rem; margin-bottom: 0.5rem; }
         p { font-size: 1.1rem; opacity: 0.9; line-height: 1.5; }
@@ -59,7 +44,6 @@
             font-family: monospace;
         }
     </style>
-<base target="_blank">
 </head>
 <body class="loading">
     <div class="container">
@@ -73,7 +57,7 @@
     <script>
         const SALT = "ITS2026OD";
         const USED_TOKENS_KEY = 'its_hunt_claimed_rewards';
-        const WIN_THRESHOLD = 10;
+        const WIN_THRESHOLD   = 10;
         const TOTAL_QUESTIONS = 12;
 
         function fromBase64Url(str) {
@@ -100,8 +84,7 @@
 
         function verificaToken(t) {
             if (!t) return { valid: false, reason: 'Token mancante' };
-            
-            // Controllo anti-duplicato locale staff
+
             if (isTokenAlreadyUsed(t)) {
                 return { valid: false, used: true, reason: 'GIA RISCATTATO' };
             }
@@ -110,10 +93,11 @@
                 const decoded = fromBase64Url(t);
                 const parts = decoded.split(':');
 
-                // Nuovo formato: SALT:count:sortedKeys:timestamp:deviceId (5 parti)
-                if (parts.length !== 5) return { valid: false, reason: 'Formato token non valido' };
+                // FIX v3.3.1: formato 4 parti — SALT:count:sortedKeys:deviceId
+                // Il timestamp è stato rimosso per rendere il token stabile tra sessioni
+                if (parts.length !== 4) return { valid: false, reason: 'Formato token non valido' };
 
-                const [salt, count, sortedKeys, timestamp, deviceId] = parts;
+                const [salt, count, sortedKeys, deviceId] = parts;
 
                 if (salt !== SALT) return { valid: false, reason: 'Firma non valida' };
 
@@ -125,43 +109,41 @@
                     };
                 }
 
-                return { valid: true, count: correctCount, deviceId: deviceId };
+                return { valid: true, count: correctCount, deviceId };
             } catch (e) {
                 return { valid: false, reason: 'Errore decodifica' };
             }
         }
 
         function mostraRisultato(result) {
-            const body = document.body;
-            const icon = document.getElementById('icon');
-            const title = document.getElementById('title');
+            const body    = document.body;
+            const icon    = document.getElementById('icon');
+            const title   = document.getElementById('title');
             const message = document.getElementById('message');
             const details = document.getElementById('details');
-            const stamp = document.getElementById('stamp');
+            const stamp   = document.getElementById('stamp');
 
             body.classList.remove('loading');
 
             if (result.valid) {
                 body.classList.add('valid');
-                icon.textContent = '✅';
-                title.textContent = 'VALIDO: CONSEGNA GADGET';
-                message.textContent = 'Il partecipante ha diritto al premio. Il sistema ha registrato questa scansione.';
+                icon.textContent    = '✅';
+                title.textContent   = 'VALIDO';
+                message.textContent = 'Il sistema ha registrato questa scansione.';
                 details.style.display = 'block';
                 details.textContent = 'Punteggio: ' + result.count + '/' + TOTAL_QUESTIONS;
-                
-                // Registra il token come usato solo se la verifica è passata
                 markTokenAsUsed(token);
             } else if (result.used) {
                 body.classList.add('used');
-                icon.textContent = '⚠️';
-                title.textContent = 'GIA UTILIZZATO';
+                icon.textContent    = '⚠️';
+                title.textContent   = 'GIA UTILIZZATO';
                 message.textContent = 'Questo QR code è stato già presentato e validato in precedenza.';
                 details.style.display = 'none';
             } else {
                 body.classList.add('invalid');
-                icon.textContent = '❌';
-                title.textContent = 'NON VALIDO';
-                message.textContent = 'Verifica fallita. Il partecipante non può ricevere il gadget.';
+                icon.textContent    = '❌';
+                title.textContent   = 'NON VALIDO';
+                message.textContent = 'Verifica fallita.';
                 details.style.display = 'block';
                 details.textContent = 'Motivo: ' + result.reason;
             }
@@ -169,7 +151,6 @@
             stamp.textContent = 'ITS Hunt 2026 — Registro Stand Produzione';
         }
 
-        // Delay per feedback visivo "caricamento"
         setTimeout(() => {
             const result = verificaToken(token);
             mostraRisultato(result);
